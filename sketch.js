@@ -1,4 +1,4 @@
-//21 nov 18 - READY stage 2 prototype
+//21 nov 18 - READY stage 3 prototype (with BEAT)
 //with nice sound scape and four buttons and four volume sliders and a master button and a master bpm slider
 //picking up the latest file using node server
 //re-record functionality
@@ -53,10 +53,10 @@ var note2 = "";
 var note3 = "";
 var note3_5 = "";
 var note2_12 = "";
-var minArrayLength = 3;
+var minArrayLength = 0;
 var playButton;
 var soundFile;
-var buttonCstate = true;
+var buttonCstate = false;
 var buttonDstate = false;
 // var buttonEstate = false;
 var buttonFstate = false;
@@ -65,12 +65,13 @@ var buttonAstate = false;
 var buttonCCstate = false;
 var buttonDDstate = false;
 var b1, b2, b3, b4, p1, p2, p3;
+var beatOn = false;
 
-melodyScale = ["C5"];
+melodyScale = [];
 // harmonyScale = ["G4"];
-arpScale = ["C4"];
-chordScale = ["G4", "A4", "C5", "D5", "F4"];
-testScale = ["C4", "D4", "F4", "G4", "A4", "C5"];
+arpScale = [];
+chordScale = ["A3", "C4", "D4", "F4", "G4"];
+// testScale = ["C4", "D4", "F4", "G4", "A4", "C5"];
 
 synth = new Tone.PolySynth({
   "envelope": {
@@ -144,10 +145,11 @@ melody.loop = true;
 
 var arpeggio = new Tone.Pattern(function(time, note){
   note2 = note;
-  var timey1 = ["2t", "4t", "4t", "8t", "16t", "16t"][floor(random(6))];
+  var timey1 = ["4n", "4t", "4t", "8t", "8t", "16t"][floor(random(6))];
+  // var timey1 = ["4n", "4t", "8t", "16t"][floor(random(3))];
   arpeggio.interval = timey1;
   // var octave = Tone.frequency(note2).transpose(-12);
-  sampler3.triggerAttackRelease(note2, "16t", time, 1);
+  sampler3.triggerAttackRelease(note2, "32t", time, 1);
   synth3.triggerAttackRelease(note2, "16t", time, 0.5);
 }, arpScale, "randomOnce");
 arpeggio.loop = true;
@@ -160,12 +162,25 @@ var chord = new Tone.Pattern(function(time, note){
   note3_5 = fifth.toNote();
   sampler4.triggerAttackRelease(bass, "2m", time, 1);
   sampler4.triggerAttackRelease(fifth, "2m", time, 0.5);
-  synth4.triggerAttackRelease(bass, "4t", time, 1);
-  synth4.triggerAttackRelease(fifth, "4t", time, 0.5);
+  synth4.triggerAttackRelease(bass, "4n", time, 1);
+  synth4.triggerAttackRelease(fifth, "4n", time, 0.5);
 }, chordScale, "randomOnce");
 
 chord.loop = true;
 chord.interval = "2n";
+
+// Add a snare drum sound
+// Play a kick/snare pattern
+
+// SOUNDS
+
+// Create a Players object and load the "kick.mp3" and "snare.mp3" files
+var kit = new Tone.Players({
+  "kick": "./kick.mp3",
+  "snare":"./snare.mp3"
+});
+kit.toMaster();
+let audioLoop = Tone.Transport.scheduleRepeat(playBeat, "4n");
 
 function preload() {
   files = loadJSON("/getfiles");
@@ -201,9 +216,9 @@ function setup(){
   melodyButton.position(40, 80+120);
   melodyButton.mousePressed(toggleMelody);
 
-  // harmonyButton = createButton("Harmony");
-  // harmonyButton.position(40, 180+150);
-  // harmonyButton.mousePressed(toggleHarmony);
+  drumsButton = createButton("drums");
+  drumsButton.position(330, 80+250);
+  drumsButton.mousePressed(toggleDrums);
 
   arpeggioButton = createButton("Arpeggio");
   arpeggioButton.position(40, 180+120);
@@ -245,9 +260,9 @@ function setup(){
   buttonB.position(340, 500);
   buttonB.mousePressed(addDDtoArray);
 
-  bpmSlider = createSlider(60, 90, 70, 2);
-  melodySlider = createSlider(-48, -24, -12, 1);
-  harmonySlider = createSlider(-48, -24, -12, 1);
+  bpmSlider = createSlider(60, 90, 70, 10);
+  melodySlider = createSlider(-48, -24, -36, 1);
+  // harmonySlider = createSlider(-48, -24, -12, 1);
   arpeggioSlider = createSlider(-24, 2, -8, 1);
   chordSlider = createSlider(-24, 2, -8, 1);
 }
@@ -268,6 +283,18 @@ function gotData() {
     }
   // latestData = int(currentString);            // save it for the draw method
   // console.log(b1, b2, p1);             // println the string
+}
+
+function playBeat() {
+  if (kit.loaded && beatOn) {
+    let beat = Tone.Transport.position.split(":")[1];
+    if(beat%2==0){
+    	kit.get("snare").start();
+    }
+    else{
+    	kit.get("kick").start();
+    }
+  }
 }
 
 function startPitch() {
@@ -367,7 +394,7 @@ function feedNote(){
     sampler3 = new Tone.Sampler({
       [theNote]: "./"+filenames[filenames.length-1]
     });
-    sampler3.attack = 0.5;
+    sampler3.attack = 0.2;
     sampler3.release = 0.01;
 
     sampler4 = new Tone.Sampler({
@@ -375,15 +402,6 @@ function feedNote(){
     });
     sampler4.attack = 0.5;
     sampler4.release = 0.01;
-
-    sampler.volume.value = -8;
-    sampler2.volume.value = -8
-    sampler3.volume.value = -8;
-    sampler4.volume.value = -8;
-    synth.volume.value = -24;
-    synth2.volume.value = -24;
-    synth3.volume.value = -24;
-    synth4.volume.value = -24;
 
     var chorus = new Tone.Chorus(4, 2.5, 0.1).toMaster();
     var freeverb = new Tone.Freeverb();
@@ -417,8 +435,8 @@ function draw(){
     sampler.volume.value = melodySlider.value();
     synth.volume.value = map(sampler.volume.value, -48, -24, -48, 0);
 
-    sampler2.volume.value = harmonySlider.value();
-    synth2.volume.value = map(sampler2.volume.value, -48, -24, -48, 0);
+    sampler2.volume.value = map(sampler.volume.value, -24, 2, -36, 0);
+    synth2.volume.value = map(sampler2.volume.value, -36, 0, -24, 0);
 
     sampler3.volume.value = arpeggioSlider.value();
     synth3.volume.value = map(sampler3.volume.value, -24, 2, -36, 1);
@@ -580,14 +598,8 @@ function toggleMelody(){
   }
 }
 
-function toggleHarmony(){
-	if(harmony.state == "started"){
-    harmony.stop();
-    harmonyButton.html("Harmony");
-  } else {
-    harmony.start("2n");
-    harmonyButton.html("Stop");
-  }
+function toggleDrums(){
+	beatOn = !beatOn;
 }
 
 function toggleArpeggio(){
@@ -621,7 +633,7 @@ function addCtoArray(){
     // chordScale.push("C3");
     // chordScale.push("C4");
   	buttonCstate = true;
-  } else if(buttonCstate==true && melodyScale.length>1){
+  } else if(buttonCstate==true && melodyScale.length>=minArrayLength){
     ellipse(40,350,20,20);
     noStroke();
     fill(150);
@@ -650,7 +662,7 @@ function addDtoArray(){
     // chordScale.push("D3");
     // chordScale.push("D4");
     buttonDstate = true;
-  } else if(buttonDstate==true && melodyScale.length>1){
+  } else if(buttonDstate==true && melodyScale.length>=minArrayLength){
     ellipse(90,350,20,20);
     noStroke();
     fill(150);
@@ -702,7 +714,7 @@ function addFtoArray(){
     // chordScale.push("F3");
     // chordScale.push("F4");
     buttonFstate = true;
-  } else if(buttonFstate==true && melodyScale.length>1){
+  } else if(buttonFstate==true && melodyScale.length>=minArrayLength){
     ellipse(130,350,20,20);
     noStroke();
     fill(150);
@@ -731,7 +743,7 @@ function addGtoArray(){
     // chordScale.push("G3");
     // chordScale.push("G4");
     buttonGstate = true;
-  } else if(buttonGstate==true && melodyScale.length>1){
+  } else if(buttonGstate==true && melodyScale.length>=minArrayLength){
     ellipse(180,350,20,20);
     noStroke();
     fill(150);
@@ -760,7 +772,7 @@ function addAtoArray(){
     // chordScale.push("A3");
     // chordScale.push("A4");
     buttonAstate = true;
-  } else if(buttonAstate==true && melodyScale.length>1){
+  } else if(buttonAstate==true && melodyScale.length>=minArrayLength){
     ellipse(230,350,20,20);
     noStroke();
     fill(150);
@@ -789,7 +801,7 @@ function addCCtoArray(){
     // chordScale.push("C4");
     // chordScale.push("C5");
     buttonCCstate = true;
-  } else if(buttonCCstate==true && melodyScale.length>1){
+  } else if(buttonCCstate==true && melodyScale.length>=minArrayLength){
     ellipse(280,350,20,20);
     noStroke();
     fill(150);
@@ -818,7 +830,7 @@ function addDDtoArray(){
     // chordScale.push("D4");
     // chordScale.push("D5");
     buttonDDstate = true;
-  } else if(buttonDDstate==true && melodyScale.length>1){
+  } else if(buttonDDstate==true && melodyScale.length>=minArrayLength){
     ellipse(330,350,20,20);
     noStroke();
     fill(150);
