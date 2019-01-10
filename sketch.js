@@ -164,6 +164,10 @@ function setup(){
   octaveButton.position(40, 280+150);
   octaveButton.mousePressed(toggleOctave);
 
+  // octaveButton = createButton("Octave");
+  // octaveButton.position(40, 280+150);
+  // octaveButton.mousePressed(toggleOctave);
+
   chordButton = createButton("Chord");
   chordButton.position(40, 380+150);
   chordButton.mousePressed(toggleChord);
@@ -431,7 +435,7 @@ function feedNote(){
 function draw(){
   background(150);
   Tone.Transport.bpm.value = bpmSlider.value();
-  if(state>3){
+  // if(state>3){
     sampler.volume.value = melodySlider.value();
     sampler2.volume.value = harmonySlider.value();
     sampler3.volume.value = octaveSlider.value();
@@ -500,6 +504,16 @@ function toggleOctave(){
     octaveButton.html("Stop");
   }
 }
+
+// function toggleOctave(){
+// 	if(octave.state == "started"){
+//   	octave.stop();
+//     octaveButton.html("Octave");
+//   } else {
+//   	octave.start("2n");
+//     octaveButton.html("Stop");
+//   }
+// }
 
 function toggleChord(){
 	if(chord.state == "started"){
