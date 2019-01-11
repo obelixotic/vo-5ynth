@@ -1,10 +1,12 @@
-//28 nov 18 ICM FINAL - (offshoot of sketch25.js) - w/o physical controller
+//30 nov 18 - PCOMP WIP - (sketch28.js ICM FINAL + arduino integration - only buttons)
 //record button disable when play on - done
 //only play melody when atleast one note in array to avoid console error - done
 //fix bpm at 65 - done
-//fix labels on buttons and disable voice layers buttons as toggle switches (except drums) - done
-//complexity slider!!!
+//fix labels on buttons and disable voice layers buttons as toggle switches (n/a to drums) - done
+//complexity slder!!!! - done
 //stop melody/arp/bass when slider to minimum - done
+
+//to fix - volume slider map to p1,p2,p3 and fix ranges
 
 var files = [];
 var filenames = [1542499854829, 1542499918082, 1542499970266];
@@ -48,7 +50,8 @@ var buttonGstate = false;
 var buttonAstate = false;
 var buttonCCstate = false;
 var buttonDDstate = false;
-var b1, b2, b3, b4, b5, b6, p1, p2, p3;
+var b1, b2, b3, b4, b5, b6, b7, b8, b9, b10;
+var p1, p2, p3;
 var beatOn = true;
 
 // melodyScale = ["C5", "D5", "F5", "G5"];
@@ -129,8 +132,8 @@ melody.loop = true;
 
 var arpeggio = new Tone.Pattern(function(time, note){
   note2 = note;
-  // var timey1 = ["4t", "4t", "8t", "8t", "16t", "16t"][floor(random(6))];
   var timey1 = ["4t", "8t", "8t", "16t", "16t", "32t"][floor(random(complexitySlider.value()))];
+  // var timey1 = ["4n", "4t", "8t", "16t"][floor(random(3))];
   arpeggio.interval = timey1;
   // var octave = Tone.frequency(note2).transpose(-12);
   sampler3.triggerAttackRelease(note2, "32t", time, 1);
@@ -163,12 +166,15 @@ var kit = new Tone.Players({
   "kick": "./kick.mp3",
   "snare":"./snare.mp3"
 });
-
 kit.toMaster();
 let audioLoop = new Tone.Event(playBeat, ["kick", "snare"]);
 audioLoop.loop = true;
 audioLoop.loopEnd = "4n";
 audioLoop.start("4n");
+// audioLoop.volume = -56;
+
+// kit.toMaster();
+// let audioLoop = Tone.Transport.scheduleRepeat(playBeat, "4n");
 
 function preload() {
   files = loadJSON("/getfiles");
@@ -180,9 +186,9 @@ function setup(){
   audioContext = getAudioContext();
   mic = new p5.AudioIn();
 
-  // serial = new p5.SerialPort();
-  // serial.on('data', gotData);
-  // serial.open("/dev/cu.usbmodem14201");
+  serial = new p5.SerialPort();
+  serial.on('data', gotData);
+  serial.open("/dev/cu.usbmodem14201");
 
   mic.start(startPitch);
   recorder = new p5.SoundRecorder();
@@ -250,7 +256,6 @@ function setup(){
   arpeggioSlider = createSlider(-24, 2, -12, 1);
   chordSlider = createSlider(-24, 2, -2, 1);
   complexitySlider = createSlider(1, 6, 2, 1);
-
 }
 
 function gotData() {
@@ -258,41 +263,49 @@ function gotData() {
   trim(currentString);                    // remove any trailing whitespace
   if (!currentString) return;             // if the string is empty, do no more
   var sensors = split(currentString, ','); // split the string on the commas
-    if (sensors.length > 8) { // if there are three elements
-      b1 = sensors[0];
-      b2 = sensors[1];
-      b3 = sensors[2];
-      b4 = sensors[3];
-      b5 = sensors[4];
-      b6 = sensors[5];
+    if (sensors.length > 12) { // if there are three elements
+      b1 = sensors[0]; //C
+      b2 = sensors[1]; //D
+      b3 = sensors[2]; //F
+      b4 = sensors[3]; //G
+      b5 = sensors[4]; //A
+      b6 = sensors[5]; //CC
+      b7 = sensors[6]; //DD
+      b8 = sensors[7]; //DRUMS
+      b9 = sensors[8]; //REC
+      b10 = sensors[9]; //PLAY/STOP
       p1 = map(sensors[6], 0, 1023, 0, -24);
       p2 = map(sensors[7], 0, 1023, 2, -24);
       p3 = map(sensors[8], 0, 1023, 2, -24);
     }
-  console.log(p1, p2, p3);
+  console.log(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10);
 
   if(b1==0 && buttonCstate==false){
     melodyScale.push("C5");
     arpScale.push("C4");
     buttonCstate = true;
+    console.log(melodyScale);
   } else if (b1==1 && buttonCstate==true){
     let i = melodyScale.indexOf("C5");
     let k = arpScale.indexOf("C4");
     melodyScale.splice(i,1);
     arpScale.splice(k,1);
     buttonCstate = false;
+    console.log(melodyScale);
   }
 
   if(b2==0 && buttonDstate==false){
     melodyScale.push("D5");
     arpScale.push("D4");
     buttonDstate = true;
+    console.log(melodyScale);
   } else if (b2==1 && buttonDstate==true){
     let i = melodyScale.indexOf("D5");
     let k = arpScale.indexOf("D4");
     melodyScale.splice(i,1);
     arpScale.splice(k,1);
     buttonDstate = false;
+    console.log(melodyScale);
   }
 
   if(b3==0 && buttonFstate==false){
@@ -319,22 +332,57 @@ function gotData() {
     buttonGstate = false;
   }
 
-  if(b5==0) {
-    Tone.Transport.start();
-    melody.start();
-    arpeggio.start();
-    chord.start();
-  } else {
-    Tone.Transport.stop();
-    melody.stop();
-    arpeggio.stop();
-    chord.stop();
+  if(b5==0 && buttonAstate==false){
+    melodyScale.push("A5");
+    arpScale.push("A4");
+    buttonAstate = true;
+  } else if (b5==1 && buttonAstate==true){
+    let i = melodyScale.indexOf("A5");
+    let k = arpScale.indexOf("A4");
+    melodyScale.splice(i,1);
+    arpScale.splice(k,1);
+    buttonAstate = false;
   }
 
-  if(b6==0){
+  if(b6==0 && buttonCCstate==false){
+    melodyScale.push("C6");
+    arpScale.push("C5");
+    buttonCCstate = true;
+  } else if (b6==1 && buttonCCstate==true){
+    let i = melodyScale.indexOf("C6");
+    let k = arpScale.indexOf("C5");
+    melodyScale.splice(i,1);
+    arpScale.splice(k,1);
+    buttonCCstate = false;
+  }
+
+  if(b7==0 && buttonDDstate==false){
+    melodyScale.push("D6");
+    arpScale.push("D5");
+    buttonDDstate = true;
+  } else if (b7==1 && buttonDDstate==true){
+    let i = melodyScale.indexOf("D6");
+    let k = arpScale.indexOf("D5");
+    melodyScale.splice(i,1);
+    arpScale.splice(k,1);
+    buttonDDstate = false;
+  }
+
+  if(b8==0) {
+    beatOn = false;
+    drumsButton.html("DrumsOn");
+  } else if(b8==1){
+    beatOn = true;
+    drumsButton.html("DrumsOff");
+  }
+
+  if(b9==0){
     if (state%4==0 && mic.enabled) {
       // record to our p5.SoundFile
       // setTimeout(function(){
+      if(Tone.Transport.state == "started"){
+        togglePlay();
+      }
       recorder.record(soundFile);
       logValues(f);
       // createP('Recording!', 20, 20);
@@ -344,8 +392,38 @@ function gotData() {
     // },500);
     }
   }
-}
 
+  if(b10==1) {
+    	Tone.Transport.stop();
+      melody.stop();
+      arpeggio.stop();
+      chord.stop();
+      toggleDrums();
+      playButton.html('Play');
+      melodyButton.html("SynthOff");
+      arpeggioButton.html("MelodyOff");
+      chordButton.html("BassOff");
+    } else if(b10==0){
+    	Tone.Transport.start();
+      melody.start("2n");
+      arpeggio.start("2n");
+      chord.start("4n");
+      toggleDrums();
+      playButton.html('Stop');
+      melodyButton.html("SynthOn");
+      arpeggioButton.html("MelodyOn");
+      chordButton.html("BassOn");
+    }
+  //   Tone.Transport.start();
+  //   melody.start("2n");
+  //   arpeggio.start("2n");
+  //   chord.start("4n");
+  // } else {
+  //   Tone.Transport.stop();
+  //   melody.stop();
+  //   arpeggio.stop();
+  //   chord.stop();
+  }
 
 function playBeat(time, drumsample) {
   if (kit.loaded && beatOn) {
@@ -358,6 +436,18 @@ function playBeat(time, drumsample) {
     }
   }
 }
+
+// function playBeat() {
+//   if (kit.loaded && beatOn) {
+//     let beat = Tone.Transport.position.split(":")[1];
+//     if(beat%2==0){
+//     	kit.get("snare").start();
+//     }
+//     else{
+//     	kit.get("kick").start();
+//     }
+//   }
+// }
 
 function startPitch() {
   pitch = ml5.pitchDetection('./model/', audioContext , mic.stream, modelLoaded);
@@ -471,14 +561,7 @@ function feedNote(){
     var chorus = new Tone.Chorus(4, 2.5, 0.1).toMaster();
     var freeverb = new Tone.Freeverb();
     freeverb.dampening.value = 1000;
-    // var phaser = new Tone.Phaser({
-    // 	"frequency" : 15,
-    // 	"octaves" : 5,
-    // 	"baseFrequency" : 1000
-    // });
-
     var pingPong = new Tone.PingPongDelay("2n", 0.2);
-    // sampler.toMaster();
     sampler.connect(pingPong).connect(freeverb).connect(chorus);
     sampler2.connect(pingPong).connect(freeverb).connect(chorus);
     sampler3.connect(pingPong).connect(freeverb).connect(chorus);
@@ -735,24 +818,6 @@ fill(0);
   text(note2,120,200-10);
   text(note3,120,300-10);
   text(note3_5,220,300-10);
-
-  // for(var s=0;s<melodyScale.length;s++){
-  //   push();
-  //   textSize(10);
-  //   text(melodyScale[s],s*50/3+40, 250);
-  //   pop();
-  // }
-
-  // if(latestData==1){
-  //   melody.stop();
-  //   arpeggio.stop();
-  //   chord.stop();
-  // } else if(latestData==0){
-  //   console.log("triggered");
-  //   melody.start("2n");
-  //   arpeggio.start("2n");
-  //   chord.start("4n");
-  // }
 }
 
 function togglePlay(){
