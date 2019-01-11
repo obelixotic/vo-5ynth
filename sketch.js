@@ -1,10 +1,8 @@
-//2 dec 18 - ICM and PCOMP FINAL - (sketch301.js + adding note FF in the scale + clean up + correct variable names)
+//5 dec 18 - ICM and PCOMP FINAL - (sketch301.js + adding note FF in the scale + clean up + correct variable names)
 
 //changes to go between ICM and PCOMP:
 // line 531 - mapping the layer volumes to pot values or slider .value()
 //line 167 - uncomment the serial stuff
-
-//line 389 - check if for PCOMP OK? - ok
 
 var files = [];
 var filename = "";
@@ -152,6 +150,7 @@ var kit = new Tone.Players({
   "kick": "./kick.mp3",
   "snare":"./snare.mp3"
 });
+
 kit.toMaster();
 let audioLoop = new Tone.Event(playBeat, ["kick", "snare"]);
 audioLoop.loop = true;
@@ -167,9 +166,9 @@ function setup(){
   audioContext = getAudioContext();
   mic = new p5.AudioIn();
 
-  serial = new p5.SerialPort();
-  serial.on('data', gotData);
-  serial.open("/dev/cu.usbmodem14201");
+  // serial = new p5.SerialPort();
+  // serial.on('data', gotData);
+  // serial.open("/dev/cu.usbmodem14201");
 
   mic.start(startPitch);
   recorder = new p5.SoundRecorder();
@@ -231,9 +230,9 @@ function setup(){
   buttonFF.position(340, 500);
   buttonFF.mousePressed(addFFtoArray);
 
-  synthSlider = createSlider(-48, -24, -40, 1);
-  melodySlider = createSlider(-24, 2, -12, 1);
-  bassSlider = createSlider(-24, 2, -2, 1);
+  synthSlider = createSlider(-24, 0, -20, 1);
+  melodySlider = createSlider(-24, 6, -12, 1);
+  bassSlider = createSlider(-24, 4, -2, 1);
   complexitySlider = createSlider(1, 6, 2, 1);
 }
 
@@ -254,12 +253,13 @@ function gotData() {
       b9 = sensors[8]; //DRUMS
       b10 = sensors[9]; //REC
       b11 = sensors[10]; //PLAY/STOP
-      p1 = map(sensors[11], 0, 1023, 0, -24); //synth
-      p2 = map(sensors[12], 0, 1023, 2, -24); //synth
-      p3 = map(sensors[13], 0, 1023, 2, -24); //bass
-      p4 = map(sensors[14], 0, 1023, 6, 1); //complexity
+      p1 = map(sensors[14], 0, 1023, 0, -24); //synth
+      p2 = map(sensors[13], 0, 1023, 2, -24); //melody
+      p3 = map(sensors[12], 0, 1023, 2, -24); //bass
+      p4 = map(sensors[11], 0, 1023, 6, 1); //complexity
     }
-  console.log(p1, p2, p3, p4);
+  // console.log(b9, b11);
+  // console.log(p4, p3, p2, p1);
 
   if(b1==0 && buttonCstate==false){
     synthScale.push("C5");
@@ -491,24 +491,28 @@ function feedNote(){
     console.log(`the note is ${theNote}`);
     console.log("SAMPLER INITIALISED");
     sampler = new Tone.Sampler({
+      // "D3": "./tusharD3.mp3"
       [theNote]: "./"+filenames[filenames.length-1]
     });
     sampler.attack = 0.5;
     sampler.release = 0.01;
 
     sampler2 = new Tone.Sampler({
+      // "D3": "./tusharD3.mp3"
       [theNote]: "./"+filenames[filenames.length-1]
     });
     sampler2.attack = 0.5;
     sampler2.release = 0.01;
 
     sampler3 = new Tone.Sampler({
+      // "D3": "./tusharD3.mp3"
       [theNote]: "./"+filenames[filenames.length-1]
     });
     sampler3.attack = 0.2;
     sampler3.release = 0.01;
 
     sampler4 = new Tone.Sampler({
+      // "D3": "./tusharD3.mp3"
       [theNote]: "./"+filenames[filenames.length-1]
     });
     sampler4.attack = 0.5;
@@ -536,28 +540,28 @@ function draw(){
   if(state>3){
     // sampler.volume.value = p1;
     sampler.volume.value = synthSlider.value();
-    synth1.volume.value = map(sampler.volume.value, -48, -24, -48, 0);
+    synth1.volume.value = map(sampler.volume.value, -24, 0, -48, 0);
 
-    sampler2.volume.value = map(sampler.volume.value, -24, 2, -36, 0);
+    sampler2.volume.value = map(sampler.volume.value, -24, 0, -36, 0);
     synth2.volume.value = map(sampler2.volume.value, -36, 0, -30, 0);
 
     // sampler3.volume.value = p2;
     sampler3.volume.value = melodySlider.value();
-    synth3.volume.value = map(sampler3.volume.value, -24, 2, -24, 0);
+    synth3.volume.value = map(sampler3.volume.value, -24, 6, -24, 2);
 
     // sampler4.volume.value = p3;
     sampler4.volume.value = bassSlider.value();
-    synth4.volume.value = map(sampler4.volume.value, -24, 2, -48, 0);
+    synth4.volume.value = map(sampler4.volume.value, -24, 4, -48, 1);
 
     // complexityValue = p4;
     complexityValue = complexitySlider.value();
   }
 
 //stopping layer if volume == min
-  if(synthScale.length<1 || p1 <= -46 || synthSlider.value() <= -46){
+  if(synthScale.length<1 || p1 <= -23 || synthSlider.value() <= -23){
     synth.stop();
     synthButton.html("SynthOff");
-  } else if(synthScale.length>0 && Tone.Transport.state == "started" && (p1 > -46 || synthSlider.value() > -46)) {
+  } else if(synthScale.length>0 && Tone.Transport.state == "started" && (p1 > -23 || synthSlider.value() > -23)) {
     synth.start("2n");
     synthButton.html("SynthOn");
   }
