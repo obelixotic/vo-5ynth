@@ -1,4 +1,4 @@
-//21 nov 18 - READY stage 3 prototype (with BEAT)
+//25 nov 18 - READY stage 3 prototype (with BEAT) - ready for ICM
 //with nice sound scape and four buttons and four volume sliders and a master button and a master bpm slider
 //picking up the latest file using node server
 //re-record functionality
@@ -56,20 +56,20 @@ var note2_12 = "";
 var minArrayLength = 0;
 var playButton;
 var soundFile;
-var buttonCstate = false;
-var buttonDstate = false;
+var buttonCstate = true;
+var buttonDstate = true;
 // var buttonEstate = false;
-var buttonFstate = false;
-var buttonGstate = false;
+var buttonFstate = true;
+var buttonGstate = true;
 var buttonAstate = false;
 var buttonCCstate = false;
 var buttonDDstate = false;
 var b1, b2, b3, b4, p1, p2, p3;
-var beatOn = false;
+var beatOn = true;
 
-melodyScale = [];
+melodyScale = ["C5", "D5", "F5", "G5"];
 // harmonyScale = ["G4"];
-arpScale = [];
+arpScale = ["C4", "D4", "F4", "G4"];
 chordScale = ["A3", "C4", "D4", "F4", "G4"];
 // testScale = ["C4", "D4", "F4", "G4", "A4", "C5"];
 
@@ -145,7 +145,7 @@ melody.loop = true;
 
 var arpeggio = new Tone.Pattern(function(time, note){
   note2 = note;
-  var timey1 = ["4n", "4t", "4t", "8t", "8t", "16t"][floor(random(6))];
+  var timey1 = ["2n", "4n", "4t", "4t", "8t", "16t"][floor(random(6))];
   // var timey1 = ["4n", "4t", "8t", "16t"][floor(random(3))];
   arpeggio.interval = timey1;
   // var octave = Tone.frequency(note2).transpose(-12);
@@ -261,9 +261,9 @@ function setup(){
   buttonB.mousePressed(addDDtoArray);
 
   bpmSlider = createSlider(60, 90, 70, 10);
-  melodySlider = createSlider(-48, -24, -36, 1);
+  melodySlider = createSlider(-48, -24, -33, 1);
   // harmonySlider = createSlider(-48, -24, -12, 1);
-  arpeggioSlider = createSlider(-24, 2, -8, 1);
+  arpeggioSlider = createSlider(-24, 2, -12, 1);
   chordSlider = createSlider(-24, 2, -8, 1);
 }
 
@@ -543,6 +543,104 @@ function draw(){
     pop();
   }
 
+  // if(buttonCstate==true && note1=="C5"){
+  //   push();
+  //   fill(0,255,0);
+  //   stroke(0);
+  //   ellipse(355-300,330,20,20);
+  //   pop();
+  // } else{
+  //   push();
+  //   fill(150);
+  //   stroke(0);
+  //   ellipse(355-300,330,20,20);
+  //   pop();
+  // }
+  //
+  // if(buttonDstate==true && note1=="D5"){
+  //   push();
+  //   fill(0,255,0);
+  //   stroke(0);
+  //   ellipse(355-250,330,20,20);
+  //   pop();
+  // } else{
+  //   push();
+  //   fill(150);
+  //   stroke(0);
+  //   ellipse(355-250,330,20,20);
+  //   pop();
+  // }
+  //
+  // if(buttonFstate==true && note1=="F5"){
+  //   push();
+  //   fill(0,255,0);
+  //   stroke(0);
+  //   ellipse(355-200,330,20,20);
+  //   pop();
+  // } else{
+  //   push();
+  //   fill(150);
+  //   stroke(0);
+  //   ellipse(355-200,330,20,20);
+  //   pop();
+  // }
+  //
+  // if(buttonGstate==true && note1=="G5"){
+  //   push();
+  //   fill(0,255,0);
+  //   stroke(0);
+  //   ellipse(355-155,330,20,20);
+  //   pop();
+  // } else{
+  //   push();
+  //   fill(150);
+  //   stroke(0);
+  //   ellipse(355-155,330,20,20);
+  //   pop();
+  // }
+  //
+  // if(buttonAstate==true && note1=="A5"){
+  //   push();
+  //   fill(0,255,0);
+  //   stroke(0);
+  //   ellipse(355-105,330,20,20);
+  //   pop();
+  // } else{
+  //   push();
+  //   fill(150);
+  //   stroke(0);
+  //   ellipse(355-105,330,20,20);
+  //   pop();
+  // }
+  //
+  // if(buttonCCstate==true && note1=="C6"){
+  //   push();
+  //   fill(0,255,0);
+  //   stroke(0);
+  //   ellipse(355-50,330,20,20);
+  //   pop();
+  // } else{
+  //   push();
+  //   fill(150);
+  //   stroke(0);
+  //   ellipse(355-50,330,20,20);
+  //   pop();
+  // }
+  //
+  // if(buttonDDstate==true && note1=="D6"){
+  //   push();
+  //   fill(0,255,0);
+  //   stroke(0);
+  //   ellipse(355,330,20,20);
+  //   pop();
+  // } else{
+  //   push();
+  //   fill(150);
+  //   stroke(0);
+  //   ellipse(355,330,20,20);
+  //   pop();
+  // }
+
 fill(0);
   text(note1,120,100-10);
   text(note2,120,200-10);
@@ -575,26 +673,32 @@ fill(0);
 function togglePlay(){
 	if(Tone.Transport.state == "started"){
   	Tone.Transport.stop();
-    // melody.stop();
-    // arpeggio.stop();
-    // chord.stop();
+    melody.stop();
+    arpeggio.stop();
+    chord.stop();
     playButton.html('Play');
+    melodyButton.html("SynthOff");
+    arpeggioButton.html("MelodyOff");
+    chordButton.html("BassOff");
   } else {
   	Tone.Transport.start();
-    // melody.start();
-    // arpeggio.start();
-    // chord.start();
+    melody.start("2n");
+    arpeggio.start("2n");
+    chord.start("4n");
     playButton.html('Stop');
+    melodyButton.html("SynthOn");
+    arpeggioButton.html("MelodyOn");
+    chordButton.html("BassOn");
   }
 }
 
 function toggleMelody(){
 	if(melody.state == "started"){
   	melody.stop();
-    melodyButton.html("Melody");
+    melodyButton.html("SynthOff");
   } else {
   	melody.start("2n");
-    melodyButton.html("Stop");
+    melodyButton.html("SynthOn");
   }
 }
 
@@ -605,20 +709,20 @@ function toggleDrums(){
 function toggleArpeggio(){
 	if(arpeggio.state == "started"){
   	arpeggio.stop();
-    arpeggioButton.html("Arpeggio");
+    arpeggioButton.html("MelodyOff");
   } else {
   	arpeggio.start("2n");
-    arpeggioButton.html("Stop");
+    arpeggioButton.html("MelodyOn");
   }
 }
 
 function toggleChord(){
 	if(chord.state == "started"){
   	chord.stop();
-    chordButton.html("Chord");
+    chordButton.html("BassOff");
   } else {
   	chord.start("4n");
-    chordButton.html("Stop");
+    chordButton.html("BassOn");
   }
 }
 
