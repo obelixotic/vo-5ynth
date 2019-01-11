@@ -1,4 +1,4 @@
-//26 nov 18 - READY stage 3 prototype (with BEAT) and first arduino experiments
+//27 nov 18 - READY stage 3 prototype (with BEAT) and further arduino experiments (duplex)
 //with nice sound scape and four buttons and four volume sliders and a master button and a master bpm slider
 //picking up the latest file using node server
 //re-record functionality
@@ -57,16 +57,15 @@ var minArrayLength = 0;
 var playButton;
 var soundFile;
 var buttonCstate = false;
-var buttonDstate = true;
+var buttonDstate = false;
 // var buttonEstate = false;
-var buttonFstate = true;
-var buttonGstate = true;
+var buttonFstate = false;
+var buttonGstate = false;
 var buttonAstate = false;
 var buttonCCstate = false;
 var buttonDDstate = false;
-var b1, b2, b3, b4, p1, p2, p3;
+var b1, b2, b3, b4, b5, b6, p1, p2, p3;
 var beatOn = true;
-var b1, b2, b3, p1, p2, p3;
 
 // melodyScale = ["C5", "D5", "F5", "G5"];
 // arpScale = ["C4", "D4", "F4", "G4"];
@@ -135,16 +134,17 @@ var melody = new Tone.Pattern(function(time, note){
   var timey1 = ["2t", "4t", "8t", "8t", "16t", "16t"][floor(random(6))];
   melody.interval = timey1;
   var fifth = Tone.Frequency(note).transpose(-5);
-  sampler.triggerAttackRelease(note, "8t", time, 1);
+  // sampler.triggerAttackRelease(note, "8t", time, 1);
   synth.triggerAttackRelease(note, "4t", time, 0.5);
-  sampler2.triggerAttackRelease(fifth, "8t", time, 1);
+  // sampler2.triggerAttackRelease(fifth, "8t", time, 1);
   synth2.triggerAttackRelease(fifth, "4t", time, 0.5);
 }, melodyScale, "randomOnce");
 melody.loop = true;
 
 var arpeggio = new Tone.Pattern(function(time, note){
   note2 = note;
-  var timey1 = ["2n", "4n", "4t", "4t", "8t", "16t"][floor(random(6))];
+  // var timey1 = ["2n", "4n", "4t", "4t", "8t", "16t"][floor(random(6))];
+  var timey1 = ["2t", "4t", "8t", "8t", "8t", "16t"][floor(random(6))];
   arpeggio.interval = timey1;
   sampler3.triggerAttackRelease(note2, "32t", time, 1);
   synth3.triggerAttackRelease(note2, "16t", time, 0.5);
@@ -252,7 +252,7 @@ function setup(){
   buttonB.mousePressed(addDDtoArray);
 
   bpmSlider = createSlider(60, 90, 70, 10);
-  melodySlider = createSlider(-48, -24, -33, 1);
+  melodySlider = createSlider(-24, -12, -18, 1);
   // harmonySlider = createSlider(-48, -24, -12, 1);
   arpeggioSlider = createSlider(-24, 2, -12, 1);
   chordSlider = createSlider(-24, 2, -8, 1);
@@ -268,11 +268,13 @@ function gotData() {
       b2 = sensors[1];
       b3 = sensors[2];
       b4 = sensors[3];
-      p1 = map(sensors[4], 0, 1023, 2, -24);
-      p2 = map(sensors[5], 0, 1023, 2, -24);
-      p3 = map(sensors[6], 0, 1023, 2, -24);
+      b5 = sensors[4];
+      b6 = sensors[5];
+      p1 = map(sensors[6], 0, 1023, 0, -24);
+      p2 = map(sensors[7], 0, 1023, 2, -24);
+      p3 = map(sensors[8], 0, 1023, 2, -24);
     }
-  console.log(b1, b2, p1);
+  console.log(p1, p2, p3);
 
   if(b1==0 && buttonCstate==false){
     melodyScale.push("C5");
@@ -286,7 +288,55 @@ function gotData() {
     buttonCstate = false;
   }
 
-  if(b2==0){
+  if(b2==0 && buttonDstate==false){
+    melodyScale.push("D5");
+    arpScale.push("D4");
+    buttonDstate = true;
+  } else if (b2==1 && buttonDstate==true){
+    let i = melodyScale.indexOf("D5");
+    let k = arpScale.indexOf("D4");
+    melodyScale.splice(i,1);
+    arpScale.splice(k,1);
+    buttonDstate = false;
+  }
+
+  if(b3==0 && buttonFstate==false){
+    melodyScale.push("F5");
+    arpScale.push("F4");
+    buttonFstate = true;
+  } else if (b3==1 && buttonFstate==true){
+    let i = melodyScale.indexOf("F5");
+    let k = arpScale.indexOf("F4");
+    melodyScale.splice(i,1);
+    arpScale.splice(k,1);
+    buttonFstate = false;
+  }
+
+  if(b4==0 && buttonGstate==false){
+    melodyScale.push("G5");
+    arpScale.push("G4");
+    buttonGstate = true;
+  } else if (b4==1 && buttonGstate==true){
+    let i = melodyScale.indexOf("G5");
+    let k = arpScale.indexOf("G4");
+    melodyScale.splice(i,1);
+    arpScale.splice(k,1);
+    buttonGstate = false;
+  }
+
+  if(b5==0) {
+    Tone.Transport.start();
+    melody.start();
+    arpeggio.start();
+    chord.start();
+  } else {
+    Tone.Transport.stop();
+    melody.stop();
+    arpeggio.stop();
+    chord.stop();
+  }
+
+  if(b6==0){
     if (state%4==0 && mic.enabled) {
       // record to our p5.SoundFile
       // setTimeout(function(){
@@ -298,18 +348,6 @@ function gotData() {
       stateManager();
     // },500);
     }
-  }
-
-  if(b3==0) {
-    Tone.Transport.start();
-    melody.start();
-    arpeggio.start();
-    chord.start();
-  } else {
-    Tone.Transport.stop();
-    melody.stop();
-    arpeggio.stop();
-    chord.stop();
   }
 }
 
@@ -358,9 +396,12 @@ function logValues(f){
 
 function keyPressed() {
   // make sure user enabled the mic
-  if (state%4==0 && mic.enabled) {
+  if (state%4==0 && mic.enabled){
     // record to our p5.SoundFile
     // setTimeout(function(){
+    if(Tone.Transport.state == "started"){
+      togglePlay();
+    }
     recorder.record(soundFile);
     logValues(f);
     // createP('Recording!', 20, 20);
@@ -407,17 +448,17 @@ function feedNote(){
   if (state === 3) {
     console.log(`the note is ${theNote}`);
     console.log("SAMPLER INITIALISED");
-    sampler = new Tone.Sampler({
-      [theNote]: "./"+filenames[filenames.length-1]
-    });
-    sampler.attack = 0.5;
-    sampler.release = 0.01;
-
-    sampler2 = new Tone.Sampler({
-      [theNote]: "./"+filenames[filenames.length-1]
-    });
-    sampler2.attack = 0.5;
-    sampler2.release = 0.01;
+    // sampler = new Tone.Sampler({
+    //   [theNote]: "./"+filenames[filenames.length-1]
+    // });
+    // sampler.attack = 0.5;
+    // sampler.release = 0.01;
+    //
+    // sampler2 = new Tone.Sampler({
+    //   [theNote]: "./"+filenames[filenames.length-1]
+    // });
+    // sampler2.attack = 0.5;
+    // sampler2.release = 0.01;
 
     sampler3 = new Tone.Sampler({
       [theNote]: "./"+filenames[filenames.length-1]
@@ -434,16 +475,9 @@ function feedNote(){
     var chorus = new Tone.Chorus(4, 2.5, 0.1).toMaster();
     var freeverb = new Tone.Freeverb();
     freeverb.dampening.value = 1000;
-    // var phaser = new Tone.Phaser({
-    // 	"frequency" : 15,
-    // 	"octaves" : 5,
-    // 	"baseFrequency" : 1000
-    // });
-
     var pingPong = new Tone.PingPongDelay("2n", 0.2);
-    // sampler.toMaster();
-    sampler.connect(pingPong).connect(freeverb).connect(chorus);
-    sampler2.connect(pingPong).connect(freeverb).connect(chorus);
+    // sampler.connect(pingPong).connect(freeverb).connect(chorus);
+    // sampler2.connect(pingPong).connect(freeverb).connect(chorus);
     sampler3.connect(pingPong).connect(freeverb).connect(chorus);
     sampler4.connect(pingPong).connect(freeverb).connect(chorus);
 
@@ -456,25 +490,40 @@ function feedNote(){
 }
 
 function draw(){
-  console.log(melodyScale);
+  // console.log(melodyScale);
   background(150);
   Tone.Transport.bpm.value = bpmSlider.value();
   // Tone.Transport.bpm.value = 90;
   if(state>3){
-    sampler.volume.value = melodySlider.value();
-    synth.volume.value = map(sampler.volume.value, -48, -24, -48, 0);
+    // sampler.volume.value = p1;
+    synth.volume.value = p1;
 
-    sampler2.volume.value = map(sampler.volume.value, -24, 2, -36, 0);
-    synth2.volume.value = map(sampler2.volume.value, -36, 0, -24, 0);
+    // sampler2.volume.value = map(p1,2, -24, 0, -36);
+    synth2.volume.value = map(p1, -24, 2, -36, 1);
 
-    sampler3.volume.value = arpeggioSlider.value();
-    synth3.volume.value = map(sampler3.volume.value, -24, 2, -36, 1);
+    sampler3.volume.value = p2;
+    synth3.volume.value = map(p2, -24, 2, -36, 1);
 
-    sampler4.volume.value = chordSlider.value();
-    synth4.volume.value = map(sampler4.volume.value, -24, 2, -48, 0);
+    sampler4.volume.value = p3;
+    synth4.volume.value = map(p3, -24, 2, -48, 0);
+  }
+
+  if(melodyScale.length<1){
+    melody.stop();
+    arpeggio.stop();
+    melodyButton.html("SynthOff");
+    arpeggioButton.html("MelodyOff");
+  }
+
+  if(melodyScale.length>0){
+    melody.start("2n");
+    arpeggio.start("2n");
+    melodyButton.html("SynthOn");
+    arpeggioButton.html("MelodyOn");
   }
 
   if(buttonCstate==true && note1=="C5"){
+    serial.write(1,0,0,0);
     push();
     fill(0,255,0);
     stroke(0);
@@ -489,6 +538,7 @@ function draw(){
   }
 
   if(buttonDstate==true && note1=="D5"){
+    serial.write(0,1,0,0);
     push();
     fill(0,255,0);
     stroke(0);
@@ -503,6 +553,7 @@ function draw(){
   }
 
   if(buttonFstate==true && note1=="F5"){
+    serial.write(0,0,1,0);
     push();
     fill(0,255,0);
     stroke(0);
@@ -517,6 +568,7 @@ function draw(){
   }
 
   if(buttonGstate==true && note1=="G5"){
+    serial.write(0,0,0,1);
     push();
     fill(0,255,0);
     stroke(0);
