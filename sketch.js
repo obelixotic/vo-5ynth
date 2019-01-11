@@ -1,4 +1,4 @@
-//30 nov 18 - PCOMP WIP - (sketch28.js ICM FINAL + arduino integration - only buttons)
+//1 dec 18 - PCOMP WIP - (sketch28.js ICM FINAL + arduino integration)
 //record button disable when play on - done
 //only play melody when atleast one note in array to avoid console error - done
 //fix bpm at 65 - done
@@ -6,7 +6,7 @@
 //complexity slder!!!! - done
 //stop melody/arp/bass when slider to minimum - done
 
-//to fix - volume slider map to p1,p2,p3 and fix ranges
+//to fix - volume slider map to p1,p2,p3 and fix ranges AND POT4 INTEGRATION
 
 var files = [];
 var filenames = [1542499854829, 1542499918082, 1542499970266];
@@ -51,8 +51,9 @@ var buttonAstate = false;
 var buttonCCstate = false;
 var buttonDDstate = false;
 var b1, b2, b3, b4, b5, b6, b7, b8, b9, b10;
-var p1, p2, p3;
+var p1, p2, p3, p4;
 var beatOn = true;
+var complexityValue;
 
 // melodyScale = ["C5", "D5", "F5", "G5"];
 // arpScale = ["C4", "D4", "F4", "G4"];
@@ -120,7 +121,7 @@ Tone.Transport.bpm.value = 65;
 var melody = new Tone.Pattern(function(time, note){
   note1 = note;
   // var timey1 = ["2t", "4t", "8t", "8t", "8t", "16t"][floor(random(6))];
-  var timey1 = ["4t", "8t", "8t", "16t", "16t", "32t"][floor(random(complexitySlider.value()))];
+  var timey1 = ["4t", "8t", "8t", "16t", "16t", "32t"][floor(random(complexityValue))];
   melody.interval = timey1;
   var fifth = Tone.Frequency(note).transpose(-5);
   sampler.triggerAttackRelease(note, "8t", time, 1);
@@ -132,7 +133,7 @@ melody.loop = true;
 
 var arpeggio = new Tone.Pattern(function(time, note){
   note2 = note;
-  var timey1 = ["4t", "8t", "8t", "16t", "16t", "32t"][floor(random(complexitySlider.value()))];
+  var timey1 = ["4t", "8t", "8t", "16t", "16t", "32t"][floor(random(complexityValue))];
   // var timey1 = ["4n", "4t", "8t", "16t"][floor(random(3))];
   arpeggio.interval = timey1;
   // var octave = Tone.frequency(note2).transpose(-12);
@@ -263,7 +264,7 @@ function gotData() {
   trim(currentString);                    // remove any trailing whitespace
   if (!currentString) return;             // if the string is empty, do no more
   var sensors = split(currentString, ','); // split the string on the commas
-    if (sensors.length > 12) { // if there are three elements
+    if (sensors.length > 13) { // if there are three elements
       b1 = sensors[0]; //C
       b2 = sensors[1]; //D
       b3 = sensors[2]; //F
@@ -274,11 +275,12 @@ function gotData() {
       b8 = sensors[7]; //DRUMS
       b9 = sensors[8]; //REC
       b10 = sensors[9]; //PLAY/STOP
-      p1 = map(sensors[6], 0, 1023, 0, -24);
-      p2 = map(sensors[7], 0, 1023, 2, -24);
-      p3 = map(sensors[8], 0, 1023, 2, -24);
+      p1 = map(sensors[10], 0, 1023, 0, -24);
+      p2 = map(sensors[11], 0, 1023, 2, -24);
+      p3 = map(sensors[12], 0, 1023, 2, -24);
+      p4 = map(sensors[13], 0, 1023, 6, 1);
     }
-  console.log(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10);
+  console.log(b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, p1, p2, p3, p4);
 
   if(b1==0 && buttonCstate==false){
     melodyScale.push("C5");
@@ -580,39 +582,43 @@ function draw(){
   // Tone.Transport.bpm.value = bpmSlider.value();
   // Tone.Transport.bpm.value = 90;
   if(state>3){
-    sampler.volume.value = melodySlider.value();
+    sampler.volume.value = p1;
     synth.volume.value = map(sampler.volume.value, -48, -24, -48, 0);
 
     sampler2.volume.value = map(sampler.volume.value, -24, 2, -36, 0);
     synth2.volume.value = map(sampler2.volume.value, -36, 0, -30, 0);
 
-    sampler3.volume.value = arpeggioSlider.value();
+    sampler3.volume.value = p2;
     synth3.volume.value = map(sampler3.volume.value, -24, 2, -24, 0);
 
-    sampler4.volume.value = chordSlider.value();
+    sampler4.volume.value = p3;
     synth4.volume.value = map(sampler4.volume.value, -24, 2, -48, 0);
+
+    complexityValue = p4;
   }
 
-  if(melodyScale.length<1 || melodySlider.value() == -48){
+  // console.log(complexityValue);
+
+  if(melodyScale.length<1 || p1 <= -48){
     melody.stop();
     melodyButton.html("SynthOff");
-  } else if(melodyScale.length>0 && Tone.Transport.state == "started" && melodySlider.value() > -48){
+  } else if(melodyScale.length>0 && Tone.Transport.state == "started" && p1 > -48){
     melody.start("2n");
     melodyButton.html("SynthOn");
   }
 
-  if(melodyScale.length<1 || arpeggioSlider.value() == -24){
+  if(melodyScale.length<1 || p2 <= -23){
     arpeggio.stop();
     arpeggioButton.html("MelodyOff");
-  } else if(melodyScale.length>0 && Tone.Transport.state == "started" && arpeggioSlider.value() > -24){
+  } else if(melodyScale.length>0 && Tone.Transport.state == "started" && p2 > -23){
       arpeggio.start("2n");
       arpeggioButton.html("MelodyOn");
     }
 
-  if(chordSlider.value() == -24 || Tone.Transport.state != "started"){
+  if(p3 <= -24 || Tone.Transport.state != "started"){
     chord.stop();
     chordButton.html("BassOff");
-  } else if(chordSlider.value() > -24 && Tone.Transport.state == "started"){
+  } else if(p3 > -24 && Tone.Transport.state == "started"){
     chord.start("4n");
     chordButton.html("BassOn");
   }
