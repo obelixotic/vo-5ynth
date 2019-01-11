@@ -1,24 +1,10 @@
-//27 nov 18 - READY stage 3 prototype (with BEAT) and further arduino experiments (duplex)
-//with nice sound scape and four buttons and four volume sliders and a master button and a master bpm slider
-//picking up the latest file using node server
-//re-record functionality
-//stop getPitch
-//use setTimeout to automate the process
-//running sketch locally by downloading libraries
-//emulating LEDs on physical device
-//lower bpm range (90-120)
-
-//to be done:
-//need to add a master cross fade between voice and synth levels
-//arduino serail integration
-//account for the timbre of a woman voice
-//bpm for different tracks
-
-// ideas:
-//flexible resistance sensor
-//visual feedback when pressing buttons
-//show note sung
-// promises
+//28 nov 18 ICM FINAL - (offshoot of sketch25.js) - w/o physical controller
+//record button disable when play on - done
+//only play melody when atleast one note in array to avoid console error - done
+//fix bpm at 65 - done
+//fix labels on buttons and disable voice layers buttons as toggle switches (except drums) - done
+//complexity slider!!!
+//stop melody/arp/bass when slider to minimum - done
 
 var files = [];
 var filenames = [1542499854829, 1542499918082, 1542499970266];
@@ -35,7 +21,6 @@ var theNote = "";
 var recorder, soundFile;
 var state = 0;
 var melodyScale = [];
-// var harmonyScale = [];
 var arpScale = [];
 var chordScale = [];
 var testScale = [];
@@ -58,7 +43,6 @@ var playButton;
 var soundFile;
 var buttonCstate = false;
 var buttonDstate = false;
-// var buttonEstate = false;
 var buttonFstate = false;
 var buttonGstate = false;
 var buttonAstate = false;
@@ -70,6 +54,7 @@ var beatOn = true;
 // melodyScale = ["C5", "D5", "F5", "G5"];
 // arpScale = ["C4", "D4", "F4", "G4"];
 chordScale = ["A3", "C4", "D4", "F4", "G4"];
+// testScale = ["C4", "D4", "F4", "G4", "A4", "C5"];
 
 synth = new Tone.PolySynth({
   "envelope": {
@@ -131,21 +116,23 @@ Tone.Transport.bpm.value = 65;
 
 var melody = new Tone.Pattern(function(time, note){
   note1 = note;
-  var timey1 = ["2t", "4t", "8t", "8t", "16t", "16t"][floor(random(6))];
+  // var timey1 = ["2t", "4t", "8t", "8t", "8t", "16t"][floor(random(6))];
+  var timey1 = ["4t", "8t", "8t", "16t", "16t", "32t"][floor(random(complexitySlider.value()))];
   melody.interval = timey1;
   var fifth = Tone.Frequency(note).transpose(-5);
-  // sampler.triggerAttackRelease(note, "8t", time, 1);
+  sampler.triggerAttackRelease(note, "8t", time, 1);
   synth.triggerAttackRelease(note, "4t", time, 0.5);
-  // sampler2.triggerAttackRelease(fifth, "8t", time, 1);
+  sampler2.triggerAttackRelease(fifth, "8t", time, 1);
   synth2.triggerAttackRelease(fifth, "4t", time, 0.5);
 }, melodyScale, "randomOnce");
 melody.loop = true;
 
 var arpeggio = new Tone.Pattern(function(time, note){
   note2 = note;
-  // var timey1 = ["2n", "4n", "4t", "4t", "8t", "16t"][floor(random(6))];
-  var timey1 = ["2t", "4t", "8t", "8t", "8t", "16t"][floor(random(6))];
+  // var timey1 = ["4t", "4t", "8t", "8t", "16t", "16t"][floor(random(6))];
+  var timey1 = ["4t", "8t", "8t", "16t", "16t", "32t"][floor(random(complexitySlider.value()))];
   arpeggio.interval = timey1;
+  // var octave = Tone.frequency(note2).transpose(-12);
   sampler3.triggerAttackRelease(note2, "32t", time, 1);
   synth3.triggerAttackRelease(note2, "16t", time, 0.5);
 }, arpScale, "randomOnce");
@@ -166,12 +153,22 @@ var chord = new Tone.Pattern(function(time, note){
 chord.loop = true;
 chord.interval = "2n";
 
+// Add a snare drum sound
+// Play a kick/snare pattern
+
+// SOUNDS
+
+// Create a Players object and load the "kick.mp3" and "snare.mp3" files
 var kit = new Tone.Players({
   "kick": "./kick.mp3",
   "snare":"./snare.mp3"
 });
+
 kit.toMaster();
-let audioLoop = Tone.Transport.scheduleRepeat(playBeat, "4n");
+let audioLoop = new Tone.Event(playBeat, ["kick", "snare"]);
+audioLoop.loop = true;
+audioLoop.loopEnd = "4n";
+audioLoop.start("4n");
 
 function preload() {
   files = loadJSON("/getfiles");
@@ -183,9 +180,9 @@ function setup(){
   audioContext = getAudioContext();
   mic = new p5.AudioIn();
 
-  serial = new p5.SerialPort();
-  serial.on('data', gotData);
-  serial.open("/dev/cu.usbmodem14201");
+  // serial = new p5.SerialPort();
+  // serial.on('data', gotData);
+  // serial.open("/dev/cu.usbmodem14201");
 
   mic.start(startPitch);
   recorder = new p5.SoundRecorder();
@@ -203,21 +200,21 @@ function setup(){
   playButton.position(330, 80+120);
   playButton.mousePressed(togglePlay);
 
-  melodyButton = createButton("Melody");
+  melodyButton = createButton("MelodyOff");
   melodyButton.position(40, 80+120);
-  melodyButton.mousePressed(toggleMelody);
+  // melodyButton.mousePressed(toggleMelody);
 
-  drumsButton = createButton("drums");
+  drumsButton = createButton("DrumsOff");
   drumsButton.position(330, 80+250);
   drumsButton.mousePressed(toggleDrums);
 
-  arpeggioButton = createButton("Arpeggio");
+  arpeggioButton = createButton("ArpeggioOff");
   arpeggioButton.position(40, 180+120);
-  arpeggioButton.mousePressed(toggleArpeggio);
+  // arpeggioButton.mousePressed(toggleArpeggio);
 
-  chordButton = createButton("Chord");
+  chordButton = createButton("BassOff");
   chordButton.position(40, 280+120);
-  chordButton.mousePressed(toggleChord);
+  // chordButton.mousePressed(toggleChord);
 
   buttonC = createButton("C");
   buttonC.position(40, 500);
@@ -226,10 +223,6 @@ function setup(){
   buttonD = createButton("D");
   buttonD.position(90, 500);
   buttonD.mousePressed(addDtoArray);
-
-  // buttonE = createButton("E");
-  // buttonE.position(140, 20+150);
-  // buttonE.mousePressed(addEtoArray);
 
   buttonF = createButton("F");
   buttonF.position(190-50, 500);
@@ -251,11 +244,13 @@ function setup(){
   buttonB.position(340, 500);
   buttonB.mousePressed(addDDtoArray);
 
-  bpmSlider = createSlider(60, 90, 70, 10);
-  melodySlider = createSlider(-24, -12, -18, 1);
+  // bpmSlider = createSlider(60, 90, 70, 10);
+  melodySlider = createSlider(-48, -24, -40, 1);
   // harmonySlider = createSlider(-48, -24, -12, 1);
   arpeggioSlider = createSlider(-24, 2, -12, 1);
-  chordSlider = createSlider(-24, 2, -8, 1);
+  chordSlider = createSlider(-24, 2, -2, 1);
+  complexitySlider = createSlider(1, 6, 2, 1);
+
 }
 
 function gotData() {
@@ -351,14 +346,15 @@ function gotData() {
   }
 }
 
-function playBeat() {
+
+function playBeat(time, drumsample) {
   if (kit.loaded && beatOn) {
     let beat = Tone.Transport.position.split(":")[1];
     if(beat%2==0){
-    	kit.get("snare").start();
+    	kit.get(drumsample[1]).start();
     }
     else{
-    	kit.get("kick").start();
+    	kit.get(drumsample[0]).start();
     }
   }
 }
@@ -396,7 +392,7 @@ function logValues(f){
 
 function keyPressed() {
   // make sure user enabled the mic
-  if (state%4==0 && mic.enabled){
+  if (state%4==0 && mic.enabled) {
     // record to our p5.SoundFile
     // setTimeout(function(){
     if(Tone.Transport.state == "started"){
@@ -448,17 +444,17 @@ function feedNote(){
   if (state === 3) {
     console.log(`the note is ${theNote}`);
     console.log("SAMPLER INITIALISED");
-    // sampler = new Tone.Sampler({
-    //   [theNote]: "./"+filenames[filenames.length-1]
-    // });
-    // sampler.attack = 0.5;
-    // sampler.release = 0.01;
-    //
-    // sampler2 = new Tone.Sampler({
-    //   [theNote]: "./"+filenames[filenames.length-1]
-    // });
-    // sampler2.attack = 0.5;
-    // sampler2.release = 0.01;
+    sampler = new Tone.Sampler({
+      [theNote]: "./"+filenames[filenames.length-1]
+    });
+    sampler.attack = 0.5;
+    sampler.release = 0.01;
+
+    sampler2 = new Tone.Sampler({
+      [theNote]: "./"+filenames[filenames.length-1]
+    });
+    sampler2.attack = 0.5;
+    sampler2.release = 0.01;
 
     sampler3 = new Tone.Sampler({
       [theNote]: "./"+filenames[filenames.length-1]
@@ -475,9 +471,16 @@ function feedNote(){
     var chorus = new Tone.Chorus(4, 2.5, 0.1).toMaster();
     var freeverb = new Tone.Freeverb();
     freeverb.dampening.value = 1000;
+    // var phaser = new Tone.Phaser({
+    // 	"frequency" : 15,
+    // 	"octaves" : 5,
+    // 	"baseFrequency" : 1000
+    // });
+
     var pingPong = new Tone.PingPongDelay("2n", 0.2);
-    // sampler.connect(pingPong).connect(freeverb).connect(chorus);
-    // sampler2.connect(pingPong).connect(freeverb).connect(chorus);
+    // sampler.toMaster();
+    sampler.connect(pingPong).connect(freeverb).connect(chorus);
+    sampler2.connect(pingPong).connect(freeverb).connect(chorus);
     sampler3.connect(pingPong).connect(freeverb).connect(chorus);
     sampler4.connect(pingPong).connect(freeverb).connect(chorus);
 
@@ -490,40 +493,48 @@ function feedNote(){
 }
 
 function draw(){
-  // console.log(melodyScale);
   background(150);
-  Tone.Transport.bpm.value = bpmSlider.value();
+  // Tone.Transport.bpm.value = bpmSlider.value();
   // Tone.Transport.bpm.value = 90;
   if(state>3){
-    // sampler.volume.value = p1;
-    synth.volume.value = p1;
+    sampler.volume.value = melodySlider.value();
+    synth.volume.value = map(sampler.volume.value, -48, -24, -48, 0);
 
-    // sampler2.volume.value = map(p1,2, -24, 0, -36);
-    synth2.volume.value = map(p1, -24, 2, -36, 1);
+    sampler2.volume.value = map(sampler.volume.value, -24, 2, -36, 0);
+    synth2.volume.value = map(sampler2.volume.value, -36, 0, -30, 0);
 
-    sampler3.volume.value = p2;
-    synth3.volume.value = map(p2, -24, 2, -36, 1);
+    sampler3.volume.value = arpeggioSlider.value();
+    synth3.volume.value = map(sampler3.volume.value, -24, 2, -24, 0);
 
-    sampler4.volume.value = p3;
-    synth4.volume.value = map(p3, -24, 2, -48, 0);
+    sampler4.volume.value = chordSlider.value();
+    synth4.volume.value = map(sampler4.volume.value, -24, 2, -48, 0);
   }
 
-  if(melodyScale.length<1){
+  if(melodyScale.length<1 || melodySlider.value() == -48){
     melody.stop();
-    arpeggio.stop();
     melodyButton.html("SynthOff");
-    arpeggioButton.html("MelodyOff");
-  }
-
-  if(melodyScale.length>0){
+  } else if(melodyScale.length>0 && Tone.Transport.state == "started" && melodySlider.value() > -48){
     melody.start("2n");
-    arpeggio.start("2n");
     melodyButton.html("SynthOn");
-    arpeggioButton.html("MelodyOn");
   }
 
-  if(buttonCstate==true && note1=="C5"){
-    serial.write(1,0,0,0);
+  if(melodyScale.length<1 || arpeggioSlider.value() == -24){
+    arpeggio.stop();
+    arpeggioButton.html("MelodyOff");
+  } else if(melodyScale.length>0 && Tone.Transport.state == "started" && arpeggioSlider.value() > -24){
+      arpeggio.start("2n");
+      arpeggioButton.html("MelodyOn");
+    }
+
+  if(chordSlider.value() == -24 || Tone.Transport.state != "started"){
+    chord.stop();
+    chordButton.html("BassOff");
+  } else if(chordSlider.value() > -24 && Tone.Transport.state == "started"){
+    chord.start("4n");
+    chordButton.html("BassOn");
+  }
+
+  if(buttonCstate==true){
     push();
     fill(0,255,0);
     stroke(0);
@@ -537,8 +548,7 @@ function draw(){
     pop();
   }
 
-  if(buttonDstate==true && note1=="D5"){
-    serial.write(0,1,0,0);
+  if(buttonDstate==true){
     push();
     fill(0,255,0);
     stroke(0);
@@ -552,8 +562,7 @@ function draw(){
     pop();
   }
 
-  if(buttonFstate==true && note1=="F5"){
-    serial.write(0,0,1,0);
+  if(buttonFstate==true){
     push();
     fill(0,255,0);
     stroke(0);
@@ -567,8 +576,7 @@ function draw(){
     pop();
   }
 
-  if(buttonGstate==true && note1=="G5"){
-    serial.write(0,0,0,1);
+  if(buttonGstate==true){
     push();
     fill(0,255,0);
     stroke(0);
@@ -582,7 +590,7 @@ function draw(){
     pop();
   }
 
-  if(buttonAstate==true && note1=="A5"){
+  if(buttonAstate==true){
     push();
     fill(0,255,0);
     stroke(0);
@@ -596,7 +604,7 @@ function draw(){
     pop();
   }
 
-  if(buttonCCstate==true && note1=="C6"){
+  if(buttonCCstate==true){
     push();
     fill(0,255,0);
     stroke(0);
@@ -610,7 +618,7 @@ function draw(){
     pop();
   }
 
-  if(buttonDDstate==true && note1=="D6"){
+  if(buttonDDstate==true){
     push();
     fill(0,255,0);
     stroke(0);
@@ -623,6 +631,104 @@ function draw(){
     ellipse(355,330,20,20);
     pop();
   }
+
+  // if(buttonCstate==true && note1=="C5"){
+  //   push();
+  //   fill(0,255,0);
+  //   stroke(0);
+  //   ellipse(355-300,330,20,20);
+  //   pop();
+  // } else{
+  //   push();
+  //   fill(150);
+  //   stroke(0);
+  //   ellipse(355-300,330,20,20);
+  //   pop();
+  // }
+  //
+  // if(buttonDstate==true && note1=="D5"){
+  //   push();
+  //   fill(0,255,0);
+  //   stroke(0);
+  //   ellipse(355-250,330,20,20);
+  //   pop();
+  // } else{
+  //   push();
+  //   fill(150);
+  //   stroke(0);
+  //   ellipse(355-250,330,20,20);
+  //   pop();
+  // }
+  //
+  // if(buttonFstate==true && note1=="F5"){
+  //   push();
+  //   fill(0,255,0);
+  //   stroke(0);
+  //   ellipse(355-200,330,20,20);
+  //   pop();
+  // } else{
+  //   push();
+  //   fill(150);
+  //   stroke(0);
+  //   ellipse(355-200,330,20,20);
+  //   pop();
+  // }
+  //
+  // if(buttonGstate==true && note1=="G5"){
+  //   push();
+  //   fill(0,255,0);
+  //   stroke(0);
+  //   ellipse(355-155,330,20,20);
+  //   pop();
+  // } else{
+  //   push();
+  //   fill(150);
+  //   stroke(0);
+  //   ellipse(355-155,330,20,20);
+  //   pop();
+  // }
+  //
+  // if(buttonAstate==true && note1=="A5"){
+  //   push();
+  //   fill(0,255,0);
+  //   stroke(0);
+  //   ellipse(355-105,330,20,20);
+  //   pop();
+  // } else{
+  //   push();
+  //   fill(150);
+  //   stroke(0);
+  //   ellipse(355-105,330,20,20);
+  //   pop();
+  // }
+  //
+  // if(buttonCCstate==true && note1=="C6"){
+  //   push();
+  //   fill(0,255,0);
+  //   stroke(0);
+  //   ellipse(355-50,330,20,20);
+  //   pop();
+  // } else{
+  //   push();
+  //   fill(150);
+  //   stroke(0);
+  //   ellipse(355-50,330,20,20);
+  //   pop();
+  // }
+  //
+  // if(buttonDDstate==true && note1=="D6"){
+  //   push();
+  //   fill(0,255,0);
+  //   stroke(0);
+  //   ellipse(355,330,20,20);
+  //   pop();
+  // } else{
+  //   push();
+  //   fill(150);
+  //   stroke(0);
+  //   ellipse(355,330,20,20);
+  //   pop();
+  // }
 
 fill(0);
   text(note1,120,100-10);
@@ -647,10 +753,6 @@ fill(0);
   //   arpeggio.start("2n");
   //   chord.start("4n");
   // }
-
-  // console.log(bpmValue.value());
-  // synth.envelope.attack = map(mouseX, 0, height, 0,1);
-  // synth.set.filter.Q = map(mouseY, 0, width, 0, 10);
 }
 
 function togglePlay(){
@@ -659,6 +761,7 @@ function togglePlay(){
     melody.stop();
     arpeggio.stop();
     chord.stop();
+    toggleDrums();
     playButton.html('Play');
     melodyButton.html("SynthOff");
     arpeggioButton.html("MelodyOff");
@@ -668,6 +771,7 @@ function togglePlay(){
     melody.start("2n");
     arpeggio.start("2n");
     chord.start("4n");
+    toggleDrums();
     playButton.html('Stop');
     melodyButton.html("SynthOn");
     arpeggioButton.html("MelodyOn");
@@ -675,39 +779,44 @@ function togglePlay(){
   }
 }
 
-function toggleMelody(){
-	if(melody.state == "started"){
-  	melody.stop();
-    melodyButton.html("SynthOff");
-  } else {
-  	melody.start("2n");
-    melodyButton.html("SynthOn");
-  }
-}
+// function toggleMelody(){
+// 	if(melody.state == "started"){
+//   	melody.stop();
+//     melodyButton.html("SynthOff");
+//   } else {
+//   	melody.start("2n");
+//     melodyButton.html("SynthOn");
+//   }
+// }
 
 function toggleDrums(){
 	beatOn = !beatOn;
-}
-
-function toggleArpeggio(){
-	if(arpeggio.state == "started"){
-  	arpeggio.stop();
-    arpeggioButton.html("MelodyOff");
+  if(beatOn){
+    drumsButton.html("DrumsOn");
   } else {
-  	arpeggio.start("2n");
-    arpeggioButton.html("MelodyOn");
+    drumsButton.html("DrumsOff");
   }
 }
 
-function toggleChord(){
-	if(chord.state == "started"){
-  	chord.stop();
-    chordButton.html("BassOff");
-  } else {
-  	chord.start("4n");
-    chordButton.html("BassOn");
-  }
-}
+// function toggleArpeggio(){
+// 	if(arpeggio.state == "started"){
+//   	arpeggio.stop();
+//     arpeggioButton.html("MelodyOff");
+//   } else {
+//   	arpeggio.start("2n");
+//     arpeggioButton.html("MelodyOn");
+//   }
+// }
+
+// function toggleChord(){
+// 	if(chord.state == "started"){
+//   	chord.stop();
+//     chordButton.html("BassOff");
+//   } else {
+//   	chord.start("4n");
+//     chordButton.html("BassOn");
+//   }
+// }
 
 function addCtoArray(){
   if(buttonCstate==false){
