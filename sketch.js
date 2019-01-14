@@ -1,8 +1,5 @@
-//15 dec 18 - WINTER SHOW FINAL
-
-//changes to go between ICM and PCOMP:
-// line 531 - mapping the layer volumes to pot values or slider .value()
-//line 167 - uncomment the serial stuff
+//19 dec 18
+//change variable theScale to change notes
 
 var files = [];
 var filename = "";
@@ -48,9 +45,10 @@ var buttonFFstate = false;
 var b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11;
 var p1, p2, p3, p4;
 var beatOn = false;
+var recordingInProcess = false;
 var complexityValue;
-
-bassScale = ["A3", "C4", "D4", "F4", "G4"];
+var thescale = ["D", "E", "F", "D", "E"];
+bassScale = [];
 
 synth1 = new Tone.PolySynth({
   "envelope": {
@@ -116,9 +114,9 @@ var synth = new Tone.Pattern(function(time, note){
   var timey1 = ["4t", "8t", "8t", "16t", "16t", "32t"][floor(random(complexityValue))];
   synth.interval = timey1;
   var fifth = Tone.Frequency(note).transpose(-5);
-  // sampler.triggerAttackRelease(note, "8t", time, 1);
+  sampler.triggerAttackRelease(note, "8t", time, 1);
   synth1.triggerAttackRelease(note, "4t", time, 0.5);
-  // sampler2.triggerAttackRelease(fifth, "8t", time, 1);
+  sampler2.triggerAttackRelease(fifth, "8t", time, 1);
   synth2.triggerAttackRelease(fifth, "4t", time, 0.5);
 }, synthScale, "randomOnce");
 synth.loop = true;
@@ -164,11 +162,16 @@ function preload() {
 function setup(){
   createCanvas(400,400);
   audioContext = getAudioContext();
+  for(var i=0; i<thescale.length; i++){
+    bassScale.push(thescale[i]+"4");
+  }
   mic = new p5.AudioIn();
 
-  serial = new p5.SerialPort();
-  serial.on('data', gotData);
-  serial.open("/dev/cu.usbmodem14201");
+  console.log(bassScale);
+
+  // serial = new p5.SerialPort();
+  // serial.on('data', gotData);
+  // serial.open("/dev/cu.usbmodem14201");
 
   mic.start(startPitch);
   recorder = new p5.SoundRecorder();
@@ -177,6 +180,10 @@ function setup(){
   createP('keyPress to record', 20, 20);
 
   textSize(30);
+
+  playButton = createButton('Record');
+  playButton.position(330-80, 80+120);
+  playButton.mousePressed(mainProcess);
 
   playButton = createButton('Play');
   playButton.position(330, 80+120);
@@ -197,43 +204,51 @@ function setup(){
   bassButton = createButton("BassOff");
   bassButton.position(40, 280+120);
   // bassButton.mousePressed(togglebass);
-
-  buttonC = createButton("C");
+  var s = 0;
+  buttonC = createButton(thescale[s]);
   buttonC.position(40-40, 500);
   buttonC.mousePressed(addCtoArray);
 
-  buttonD = createButton("D");
+  s++;
+  buttonD = createButton(thescale[s]);
   buttonD.position(90-50, 500);
   buttonD.mousePressed(addDtoArray);
 
-  buttonF = createButton("F");
+  s++;
+  buttonF = createButton(thescale[s]);
   buttonF.position(190-100, 500);
   buttonF.mousePressed(addFtoArray);
 
-  buttonG = createButton("G");
+  s++;
+  buttonG = createButton(thescale[s]);
   buttonG.position(240-100, 500);
   buttonG.mousePressed(addGtoArray);
 
-  buttonA = createButton("A");
+  s++;
+  buttonA = createButton(thescale[s]);
   buttonA.position(290-100, 500);
   buttonA.mousePressed(addAtoArray);
 
-  buttonCC = createButton("C");
+  s=0;
+  buttonCC = createButton(thescale[s]);
   buttonCC.position(340-100, 500);
   buttonCC.mousePressed(addCCtoArray);
 
-  buttonDD = createButton("D");
+  s++;
+  buttonDD = createButton(thescale[s]);
   buttonDD.position(340-50, 500);
   buttonDD.mousePressed(addDDtoArray);
 
-  buttonFF = createButton("F");
+  s++;
+  buttonFF = createButton(thescale[s]);
   buttonFF.position(340, 500);
   buttonFF.mousePressed(addFFtoArray);
 
-  synthSlider = createSlider(-48, -24, -40, 1);
-  melodySlider = createSlider(-24, 2, -12, 1);
-  bassSlider = createSlider(-24, 2, -2, 1);
+  // bpmSlider = createSlider(50, 82, 66, 4);
   complexitySlider = createSlider(1, 6, 2, 1);
+  bassSlider = createSlider(-24, 4, -2, 1);
+  melodySlider = createSlider(-24, 6, -12, 1);
+  synthSlider = createSlider(-24, 0, -20, 1);
 }
 
 function gotData() {
@@ -254,12 +269,12 @@ function gotData() {
       b10 = sensors[9]; //REC
       b11 = sensors[10]; //PLAY/STOP
       p1 = map(sensors[14], 0, 1023, 0, -24); //synth
-      p2 = map(sensors[13], 0, 1023, 6, -24); //melody
-      p3 = map(sensors[12], 0, 1023, 4, -24); //bass
+      p2 = map(sensors[13], 0, 1023, 2, -24); //melody
+      p3 = map(sensors[12], 0, 1023, 2, -24); //bass
       p4 = map(sensors[11], 0, 1023, 6, 1); //complexity
     }
   // console.log(b9, b11);
-  // console.log(b4, b9);
+  // console.log(p4, p3, p2, p1);
 
   if(b1==0 && buttonCstate==false){
     synthScale.push("C5");
@@ -361,7 +376,7 @@ function gotData() {
   if(b9==0) {
     beatOn = true;
     // drumsButton.html("DrumsOn");
-  } else if(b9==1){
+  } else if(b8==1){
     beatOn = false;
     // drumsButton.html("DrumsOff");
   }
@@ -411,8 +426,7 @@ function playBeat(time, drumsample) {
     	kit.get(drumsample[1]).start();
     }
     else{
-    	// kit.get(drumsample[1]).start();
-      kit.get(drumsample[0]).start();
+    	kit.get(drumsample[0]).start();
     }
   }
 }
@@ -445,7 +459,7 @@ function logValues(f){
   console.log(values);
 }
 
-function keyPressed() {
+function mainProcess() {
   if (state%4==0 && mic.enabled) {
     if(Tone.Transport.state == "started"){
       togglePlay();
@@ -477,9 +491,7 @@ function findNote(){
     // console.log(JSON.stringify(temp,null,null));
     theNote = Tone.Frequency(temp, "midi").toNote();
     notes.push(theNote);
-    if(b9==1){
-      soundFile.play();
-    }
+    soundFile.play();
     filename = Date.now()+'.wav';
     filenames.push(filename);
     save(soundFile, filename);
@@ -493,7 +505,7 @@ function feedNote(){
   if (state === 3) {
     console.log(`the note is ${theNote}`);
     console.log("SAMPLER INITIALISED");
-    if(b9==0 && b4==1){
+    if(buttonCstate==true && buttonGstate==false){
       console.log("angel mode on");
       synth1.set({"oscillator": {
                 "type": "sine"
@@ -534,7 +546,7 @@ function feedNote(){
       });
       sampler4.attack = 0.5;
       sampler4.release = 0.01;
-    } else if(b9==1 && b4==0){
+    } else if(buttonCstate==false && buttonGstate==true){
           console.log("stranger things mode on");
           synth1.set({"oscillator": {
                     "type": "triangle"
@@ -576,7 +588,7 @@ function feedNote(){
           });
           sampler4.attack = 0.5;
           sampler4.release = 0.01;
-    } else if(b9==0 && b4==0){
+    } else if(buttonCstate==true && buttonGstate==true){
       console.log("god mode on");
       sampler = new Tone.Sampler({
         "D3": "./tusharD3.mp3"
@@ -617,7 +629,7 @@ function feedNote(){
                 "type": "square"
                 }
       });
-    } else if(b9==1 && b4==1){
+    } else if(buttonCstate==false && buttonGstate==false){
       synth1.set({"oscillator": {
                 "type": "sine"
                 }
@@ -678,49 +690,51 @@ function feedNote(){
 
 function draw(){
   background(150);
+  // Tone.Transport.bpm.value = bpmSlider.value();
+
   if(state>3){
-    sampler.volume.value = p1;
-    // sampler.volume.value = synthSlider.value();
-    synth1.volume.value = map(sampler.volume.value, -24, 0, -54, -12);
+    // sampler.volume.value = p1;
+    sampler.volume.value = synthSlider.value();
+    synth1.volume.value = map(sampler.volume.value, -24, 0, -48, 0);
 
-    sampler2.volume.value = map(synth1.volume.value, -48, 0, -36, 0);
-    synth2.volume.value = map(synth1.volume.value, -54, -12, -48, -8);
+    sampler2.volume.value = map(sampler.volume.value, -24, 0, -36, 0);
+    synth2.volume.value = map(sampler2.volume.value, -36, 0, -30, 0);
 
-    sampler3.volume.value = p2;
-    // sampler3.volume.value = melodySlider.value();
-    synth3.volume.value = map(sampler3.volume.value, -24, 6, -48, -8);
+    // sampler3.volume.value = p2;
+    sampler3.volume.value = melodySlider.value();
+    synth3.volume.value = map(sampler3.volume.value, -24, 6, -24, 2);
 
-    sampler4.volume.value = p3;
-    // sampler4.volume.value = bassSlider.value();
-    synth4.volume.value = map(sampler4.volume.value, -24, 4, -48, 0);
+    // sampler4.volume.value = p3;
+    sampler4.volume.value = bassSlider.value();
+    synth4.volume.value = map(sampler4.volume.value, -24, 4, -48, 1);
 
-    complexityValue = p4;
-    // complexityValue = complexitySlider.value();
+    // complexityValue = p4;
+    complexityValue = complexitySlider.value();
   }
 
 //stopping layer if volume == min
-  if(synthScale.length>0 && Tone.Transport.state == "started" && p1 > -22.5) {
-    synth.start("2n");
-    synthButton.html("SynthOn");
-  } else {
+  if(synthScale.length<1 || p1 <= -23 || synthSlider.value() <= -23){
     synth.stop();
     synthButton.html("SynthOff");
+  } else if(synthScale.length>0 && Tone.Transport.state == "started" && (p1 > -23 || synthSlider.value() > -23)) {
+    synth.start("2n");
+    synthButton.html("SynthOn");
   }
 
-  if(synthScale.length>0 && Tone.Transport.state == "started" && p2 > -22.5){
-    melody.start("2n");
-    melodyButton.html("MelodyOn");
-  } else {
+  if(synthScale.length<1 || p2 <= -23 || melodySlider.value() <= -23){
     melody.stop();
     melodyButton.html("MelodyOff");
-  }
+  } else if(synthScale.length>0 && Tone.Transport.state == "started" && (p2 > -23 || melodySlider.value() > -23)){
+      melody.start("2n");
+      melodyButton.html("MelodyOn");
+    }
 
-  if(Tone.Transport.state == "started" && p3 > -22.5){
-    bass.start("4n");
-    bassButton.html("BassOn");
-  } else {
+  if(p3 <= -23 || bassSlider.value() <= -23 || Tone.Transport.state != "started"){
     bass.stop();
     bassButton.html("BassOff");
+  } else if((p3 > -23 || bassSlider.value() > -23) && Tone.Transport.state == "started"){
+    bass.start("4n");
+    bassButton.html("BassOn");
   }
 
   if(Tone.Transport.state == "started" && beatOn){
@@ -884,12 +898,12 @@ function toggleDrums(){
 //to control from DOM buttons
 function addCtoArray(){
   if(buttonCstate==false){
-    synthScale.push("C5");
-    melodyScale.push("C4");
+    synthScale.push(thescale[0]+"5");
+    melodyScale.push(thescale[0]+"4");
   	buttonCstate = true;
   } else if(buttonCstate==true && synthScale.length>=minArrayLength){
-    let i = synthScale.indexOf("C5");
-    let k = melodyScale.indexOf("C4");
+    let i = synthScale.indexOf(thescale[0]+"5");
+    let k = melodyScale.indexOf(thescale[0]+"4");
     synthScale.splice(i,1);
     melodyScale.splice(k,1);
     buttonCstate = false;
@@ -898,12 +912,12 @@ function addCtoArray(){
 
 function addDtoArray(){
 	if(buttonDstate==false){
-    synthScale.push("D5");
-    melodyScale.push("D4");
+    synthScale.push(thescale[1]+"5");
+    melodyScale.push(thescale[1]+"4");
     buttonDstate = true;
   } else if(buttonDstate==true && synthScale.length>=minArrayLength){
-    let i = synthScale.indexOf("D5");
-    let k = melodyScale.indexOf("D4");
+    let i = synthScale.indexOf(thescale[1]+"5");
+    let k = melodyScale.indexOf(thescale[1]+"4");
     synthScale.splice(i,1);
     melodyScale.splice(k,1);
     buttonDstate = false;
@@ -912,12 +926,12 @@ function addDtoArray(){
 
 function addFtoArray(){
 	if(buttonFstate==false){
-    synthScale.push("F5");
-    melodyScale.push("F4");
+    synthScale.push(thescale[2]+"5");
+    melodyScale.push(thescale[2]+"4");
     buttonFstate = true;
   } else if(buttonFstate==true && synthScale.length>=minArrayLength){
-    let i = synthScale.indexOf("F5");
-    let k = melodyScale.indexOf("F4");
+    let i = synthScale.indexOf(thescale[2]+"5");
+    let k = melodyScale.indexOf(thescale[2]+"4");
     synthScale.splice(i,1);
     melodyScale.splice(k,1);
     buttonFstate = false;
@@ -926,12 +940,12 @@ function addFtoArray(){
 
 function addGtoArray(){
 	if(buttonGstate==false){
-    synthScale.push("G5");
-    melodyScale.push("G4");
+    synthScale.push(thescale[3]+"5");
+    melodyScale.push(thescale[3]+"4");
     buttonGstate = true;
   } else if(buttonGstate==true && synthScale.length>=minArrayLength){
-    let i = synthScale.indexOf("G5");
-    let k = melodyScale.indexOf("G4");
+    let i = synthScale.indexOf(thescale[3]+"5");
+    let k = melodyScale.indexOf(thescale[3]+"4");
     synthScale.splice(i,1);
     melodyScale.splice(k,1);
     buttonGstate = false;
@@ -940,12 +954,12 @@ function addGtoArray(){
 
 function addAtoArray(){
 	if(buttonAstate==false){
-    synthScale.push("A5");
-    melodyScale.push("A4");
+    synthScale.push(thescale[4]+"5");
+    melodyScale.push(thescale[4]+"4");
     buttonAstate = true;
   } else if(buttonAstate==true && synthScale.length>=minArrayLength){
-    let i = synthScale.indexOf("A5");
-    let k = melodyScale.indexOf("A4");
+    let i = synthScale.indexOf(thescale[4]+"5");
+    let k = melodyScale.indexOf(thescale[4]+"4");
     synthScale.splice(i,1);
     melodyScale.splice(k,1);
     buttonAstate = false;
@@ -954,12 +968,12 @@ function addAtoArray(){
 
 function addCCtoArray(){
 	if(buttonCCstate==false){
-    synthScale.push("C6");
-    melodyScale.push("C5");
+    synthScale.push(thescale[0]+"6");
+    melodyScale.push(thescale[0]+"5");
     buttonCCstate = true;
   } else if(buttonCCstate==true && synthScale.length>=minArrayLength){
-    let i = synthScale.indexOf("C6");
-    let k = melodyScale.indexOf("C5");
+    let i = synthScale.indexOf(thescale[0]+"6");
+    let k = melodyScale.indexOf(thescale[0]+"5");
     synthScale.splice(i,1);
     melodyScale.splice(k,1);
     buttonCCstate = false;
@@ -968,12 +982,12 @@ function addCCtoArray(){
 
 function addDDtoArray(){
 	if(buttonDDstate==false){
-    synthScale.push("D6");
-    melodyScale.push("D5");
+    synthScale.push(thescale[1]+"6");
+    melodyScale.push(thescale[1]+"5");
     buttonDDstate = true;
   } else if(buttonDDstate==true && synthScale.length>=minArrayLength){
-    let i = synthScale.indexOf("D6");
-    let k = melodyScale.indexOf("D5");
+    let i = synthScale.indexOf(thescale[1]+"6");
+    let k = melodyScale.indexOf(thescale[1]+"5");
     synthScale.splice(i,1);
     melodyScale.splice(k,1);
     buttonDDstate = false;
@@ -982,12 +996,12 @@ function addDDtoArray(){
 
 function addFFtoArray(){
 	if(buttonFFstate==false){
-    synthScale.push("F6");
-    melodyScale.push("F5");
+    synthScale.push(thescale[2]+"6");
+    melodyScale.push(thescale[2]+"5");
     buttonFFstate = true;
   } else if(buttonFFstate==true && synthScale.length>=minArrayLength){
-    let i = synthScale.indexOf("F6");
-    let k = melodyScale.indexOf("F5");
+    let i = synthScale.indexOf(thescale[2]+"6");
+    let k = melodyScale.indexOf(thescale[2]+"5");
     synthScale.splice(i,1);
     melodyScale.splice(k,1);
     buttonFFstate = false;
