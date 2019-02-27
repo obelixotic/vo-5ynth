@@ -3,13 +3,20 @@
 //change variable theScale to change notes
 //experimenting with audio buffer of p5.sound library - done!!!
 
+// If you are having trouble getting Audio stuff to work in Chrome (mic, sound files, oscillator).
+// As in you are getting this error: The AudioContext was not allowed to start.
+// It must be resumed (or created) after a user gesture on the page. <URL>
+// Add this to your code:
+//
+//
+
 var notes = [];
 var serial;
 let audioContext;
 let mic;
 let pitch;
 let values = [];
-let f=0;
+let f = 0;
 var theNote = "";
 var recorder, soundFile;
 var state = 0;
@@ -51,12 +58,13 @@ synth1 = new Tone.PolySynth({
     "decay": 0,
     "sustain": 0,
     "release": 0.001,
-    }
+  }
 }).toMaster();
 
-synth1.set({"oscillator": {
-          "type": "sine"
-					}
+synth1.set({
+  "oscillator": {
+    "type": "sine"
+  }
 });
 
 synth2 = new Tone.PolySynth({
@@ -65,12 +73,13 @@ synth2 = new Tone.PolySynth({
     "decay": 0,
     "sustain": 0,
     "release": 0.001,
-    }
+  }
 }).toMaster();
 
-synth2.set({"oscillator": {
-          "type": "sine"
-					}
+synth2.set({
+  "oscillator": {
+    "type": "sine"
+  }
 });
 
 synth3 = new Tone.PolySynth({
@@ -79,12 +88,13 @@ synth3 = new Tone.PolySynth({
     "decay": 0,
     "sustain": 0.3,
     "release": 0.01,
-    }
+  }
 }).toMaster();
 
-synth3.set({"oscillator": {
-          "type": "sine"
-					}
+synth3.set({
+  "oscillator": {
+    "type": "sine"
+  }
 });
 
 synth4 = new Tone.PolySynth({
@@ -93,17 +103,18 @@ synth4 = new Tone.PolySynth({
     "decay": 0,
     "sustain": 0.1,
     "release": 0.01,
-    }
+  }
 }).toMaster();
 
-synth4.set({"oscillator": {
-          "type": "sine"
-					}
+synth4.set({
+  "oscillator": {
+    "type": "sine"
+  }
 });
 
 Tone.Transport.bpm.value = 65;
 
-var synth = new Tone.Pattern(function(time, note){
+var synth = new Tone.Pattern(function(time, note) {
   note1 = note;
   var timey1 = ["4t", "8t", "8t", "16t", "16t", "32t"][floor(random(complexityValue))];
   synth.interval = timey1;
@@ -115,7 +126,7 @@ var synth = new Tone.Pattern(function(time, note){
 }, synthScale, "randomOnce");
 synth.loop = true;
 
-var melody = new Tone.Pattern(function(time, note){
+var melody = new Tone.Pattern(function(time, note) {
   note2 = note;
   var timey1 = ["4t", "8t", "8t", "16t", "16t", "32t"][floor(random(complexityValue))];
   melody.interval = timey1;
@@ -124,7 +135,7 @@ var melody = new Tone.Pattern(function(time, note){
 }, melodyScale, "randomOnce");
 melody.loop = true;
 
-var bass = new Tone.Pattern(function(time, note){
+var bass = new Tone.Pattern(function(time, note) {
   note3 = note;
   var bass = Tone.Frequency(note).transpose(-12);
   var fifth = Tone.Frequency(note).transpose(-5);
@@ -139,7 +150,7 @@ bass.interval = "2n";
 
 var kit = new Tone.Players({
   "kick": "./kick.mp3",
-  "snare":"./snare.mp3"
+  "snare": "./snare.mp3"
 });
 
 kit.toMaster();
@@ -148,11 +159,11 @@ audioLoop.loop = true;
 audioLoop.loopEnd = "4n";
 audioLoop.start("4n");
 
-function setup(){
-  createCanvas(400,400);
+function setup() {
+  createCanvas(400, 400);
   audioContext = getAudioContext();
-  for(var i=0; i<thescale.length; i++){
-    bassScale.push(thescale[i]+"4");
+  for (var i = 0; i < thescale.length; i++) {
+    bassScale.push(thescale[i] + "4");
   }
   mic = new p5.AudioIn();
 
@@ -166,66 +177,66 @@ function setup(){
 
   textSize(30);
 
-  playButton = createButton('Record');
-  playButton.position(330-80, 80+120);
-  playButton.mousePressed(recordVoice);
+  recordButton = createButton('Record');
+  recordButton.position(330 - 80, 80 + 120);
+  recordButton.mousePressed(recordVoice);
 
   modeButton = createButton('Mode1');
-  modeButton.position(330-80, 80+250);
+  modeButton.position(330 - 80, 80 + 250);
   modeButton.mousePressed(synthMode);
 
   playButton = createButton('Play');
-  playButton.position(330, 80+120);
+  playButton.position(330, 80 + 120);
   playButton.mousePressed(togglePlay);
 
   synthButton = createButton("synthOff");
-  synthButton.position(40, 80+120);
+  synthButton.position(40, 80 + 120);
   // synthButton.mousePressed(togglesynth);
 
   drumsButton = createButton("DrumsOff");
-  drumsButton.position(330, 80+250);
+  drumsButton.position(330, 80 + 250);
   drumsButton.mousePressed(toggleDrums);
 
   melodyButton = createButton("melodyOff");
-  melodyButton.position(40, 180+120);
+  melodyButton.position(40, 180 + 120);
   // melodyButton.mousePressed(togglemelody);
 
   bassButton = createButton("BassOff");
-  bassButton.position(40, 280+120);
+  bassButton.position(40, 280 + 120);
   // bassButton.mousePressed(togglebass);
   var s = 0;
   buttonC = createButton(thescale[s]);
-  buttonC.position(40-40, 500);
+  buttonC.position(40 - 40, 500);
   buttonC.mousePressed(addCtoArray);
 
   s++;
   buttonD = createButton(thescale[s]);
-  buttonD.position(90-50, 500);
+  buttonD.position(90 - 50, 500);
   buttonD.mousePressed(addDtoArray);
 
   s++;
   buttonF = createButton(thescale[s]);
-  buttonF.position(190-100, 500);
+  buttonF.position(190 - 100, 500);
   buttonF.mousePressed(addFtoArray);
 
   s++;
   buttonG = createButton(thescale[s]);
-  buttonG.position(240-100, 500);
+  buttonG.position(240 - 100, 500);
   buttonG.mousePressed(addGtoArray);
 
   s++;
   buttonA = createButton(thescale[s]);
-  buttonA.position(290-100, 500);
+  buttonA.position(290 - 100, 500);
   buttonA.mousePressed(addAtoArray);
 
-  s=0;
+  s = 0;
   buttonCC = createButton(thescale[s]);
-  buttonCC.position(340-100, 500);
+  buttonCC.position(340 - 100, 500);
   buttonCC.mousePressed(addCCtoArray);
 
   s++;
   buttonDD = createButton(thescale[s]);
-  buttonDD.position(340-50, 500);
+  buttonDD.position(340 - 50, 500);
   buttonDD.mousePressed(addDDtoArray);
 
   s++;
@@ -243,29 +254,28 @@ function setup(){
 function playBeat(time, drumsample) {
   if (kit.loaded && beatOn) {
     let beat = Tone.Transport.position.split(":")[1];
-    if(beat%2==0){
-    	kit.get(drumsample[1]).start();
-    }
-    else{
-    	kit.get(drumsample[0]).start();
+    if (beat % 2 == 0) {
+      kit.get(drumsample[1]).start();
+    } else {
+      kit.get(drumsample[0]).start();
     }
   }
 }
 
-function synthMode(){
-  if(Tone.Transport.state != "started"){
+function synthMode() {
+  if (Tone.Transport.state != "started") {
     stm = !stm;
-    if(stm==true){
+    if (stm == true) {
       modeButton.html("Mode2");
     } else {
       modeButton.html("Mode1");
     }
-  prepareSynth();
+    prepareSynth();
   }
 }
 
 function startPitch() {
-  pitch = ml5.pitchDetection('./model/', audioContext , mic.stream, modelLoaded);
+  pitch = ml5.pitchDetection('./model/', audioContext, mic.stream, modelLoaded);
 }
 
 function modelLoaded() {
@@ -279,94 +289,102 @@ function getPitch() {
       select('#result').html(frequency);
       f = frequency;
     }
-    if(Tone.Transport.state != "started" && state==0){
+    if (Tone.Transport.state != "started" && state == 0) {
       setTimeout(getPitch, 100);
     }
   })
 }
 
-function logValues(f){
-  if(f > 0){
+function logValues(f) {
+  if (f > 0) {
     values.push(f);
   }
   console.log(values);
 }
 
 function recordVoice() {
-  if (state%4==0 && mic.enabled && Tone.Transport.state != "started") {
+  if (state % 4 == 0 && mic.enabled && Tone.Transport.state != "started") {
     recorder.record(soundFile);
     logValues(f);
     console.log("RECORDING AND LISTENING");
-    state=1;
+    state = 1;
     stateManager();
   }
 }
 
-function stateManager(){
+function stateManager() {
   setTimeout(stopRecording, 1000);
 }
 
-function stopRecording(){
+function stopRecording() {
   if (state === 1) {
     recorder.stop();
     console.log("STOPPED RECORDING AND LISTENING")
     state++;
   }
-  setTimeout(findNote,1000);
+  setTimeout(findNote, 1000);
 }
 
-function findNote(){
+function findNote() {
   if (state === 2) {
-    var temp = Tone.Frequency.ftom(values[values.length-1]);
+    var temp = Tone.Frequency.ftom(values[values.length - 1]);
     theNote = Tone.Frequency(temp, "midi").toNote();
     notes.push(theNote);
     soundFile.play();
     state++;
   }
-  setTimeout(feedNote,1000);
+  setTimeout(feedNote, 1000);
 }
 
-function prepareSynth(){
-  if(stm==false){
+function prepareSynth() {
+  if (stm == false) {
     console.log("tranquil mode on");
-    synth1.set({"oscillator": {
-              "type": "sine"
-              }
+    synth1.set({
+      "oscillator": {
+        "type": "sine"
+      }
     });
-    synth2.set({"oscillator": {
-              "type": "sine"
-              }
+    synth2.set({
+      "oscillator": {
+        "type": "sine"
+      }
     });
-    synth3.set({"oscillator": {
-              "type": "sine"
-              }
+    synth3.set({
+      "oscillator": {
+        "type": "sine"
+      }
     });
-    synth4.set({"oscillator": {
-              "type": "sine"
-              }
+    synth4.set({
+      "oscillator": {
+        "type": "sine"
+      }
     });
-  } else if(stm==true){
-        console.log("stranger things mode on");
-        synth1.set({"oscillator": {
-                  "type": "triangle"
-                  }
-        });
-        synth2.set({"oscillator": {
-                  "type": "sawtooth"
-                  }
-        });
-        synth3.set({"oscillator": {
-                  "type": "sawtooth"
-                  }
-        });
-        synth4.set({"oscillator": {
-                  "type": "square"
-                  }
-        });
+  } else if (stm == true) {
+    console.log("stranger things mode on");
+    synth1.set({
+      "oscillator": {
+        "type": "triangle"
+      }
+    });
+    synth2.set({
+      "oscillator": {
+        "type": "sawtooth"
+      }
+    });
+    synth3.set({
+      "oscillator": {
+        "type": "sawtooth"
+      }
+    });
+    synth4.set({
+      "oscillator": {
+        "type": "square"
+      }
+    });
   }
 }
 
-function feedNote(){
+function feedNote() {
   if (state === 3) {
     console.log(`the note is ${theNote}`);
     console.log("SAMPLER INITIALISED");
@@ -404,17 +422,17 @@ function feedNote(){
     sampler4.connect(pingPong).connect(freeverb).connect(chorus);
 
     console.log("READY TO PLAY");
-    state=0;
+    state = 0;
     getPitch();
     console.log(notes);
   }
 }
 
-function draw(){
+function draw() {
   background(150);
   // Tone.Transport.bpm.value = bpmSlider.value();
 
-  if(Tone.Transport.state=="started"){
+  if (Tone.Transport.state == "started") {
     sampler.volume.value = synthSlider.value();
     synth1.volume.value = map(synthSlider.value(), -24, 0, -48, 0);
 
@@ -430,161 +448,161 @@ function draw(){
     complexityValue = complexitySlider.value();
   }
 
-//stopping layer if volume == min
-  if(synthScale.length<1 || synthSlider.value() <= -23){
+  //stopping layer if volume == min
+  if (synthScale.length < 1 || synthSlider.value() <= -23) {
     synth.stop();
     synthButton.html("SynthOff");
-  } else if(synthScale.length>0 && Tone.Transport.state == "started" && synthSlider.value() > -23) {
+  } else if (synthScale.length > 0 && Tone.Transport.state == "started" && synthSlider.value() > -23) {
     synth.start("2n");
     synthButton.html("SynthOn");
   }
 
-  if(synthScale.length<1 || melodySlider.value() <= -23){
+  if (synthScale.length < 1 || melodySlider.value() <= -23) {
     melody.stop();
     melodyButton.html("MelodyOff");
-  } else if(synthScale.length>0 && Tone.Transport.state == "started" && melodySlider.value() > -23){
-      melody.start("2n");
-      melodyButton.html("MelodyOn");
+  } else if (synthScale.length > 0 && Tone.Transport.state == "started" && melodySlider.value() > -23) {
+    melody.start("2n");
+    melodyButton.html("MelodyOn");
   }
 
-  if(bassSlider.value() <= -23 || Tone.Transport.state != "started"){
+  if (bassSlider.value() <= -23 || Tone.Transport.state != "started") {
     bass.stop();
     bassButton.html("BassOff");
-  } else if(bassSlider.value() > -23 && Tone.Transport.state == "started"){
+  } else if (bassSlider.value() > -23 && Tone.Transport.state == "started") {
     bass.start("4n");
     bassButton.html("BassOn");
   }
 
-  if(Tone.Transport.state == "started" && beatOn){
+  if (Tone.Transport.state == "started" && beatOn) {
     drumsButton.html("DrumsOn");
-  } else if (Tone.Transport.state != "started" || !beatOn){
+  } else if (Tone.Transport.state != "started" || !beatOn) {
     drumsButton.html("DrumsOff");
   }
 
-//green circles
-// use if(buttonCstate==true && note1=="C5"){ } for having the green circles move as notes are played
-  if(buttonCstate==true){
+  //green circles
+  // use if(buttonCstate==true && note1=="C5"){ } for having the green circles move as notes are played
+  if (buttonCstate == true) {
     push();
-    fill(0,255,0);
+    fill(0, 255, 0);
     stroke(0);
-    ellipse(355-350,330,20,20);
+    ellipse(355 - 350, 330, 20, 20);
     pop();
-  } else{
+  } else {
     push();
     fill(150);
     stroke(0);
-    ellipse(355-350,330,20,20);
+    ellipse(355 - 350, 330, 20, 20);
     pop();
   }
 
-  if(buttonDstate==true){
+  if (buttonDstate == true) {
     push();
-    fill(0,255,0);
+    fill(0, 255, 0);
     stroke(0);
-    ellipse(355-300,330,20,20);
+    ellipse(355 - 300, 330, 20, 20);
     pop();
-  } else{
+  } else {
     push();
     fill(150);
     stroke(0);
-    ellipse(355-300,330,20,20);
+    ellipse(355 - 300, 330, 20, 20);
     pop();
   }
 
-  if(buttonFstate==true){
+  if (buttonFstate == true) {
     push();
-    fill(0,255,0);
+    fill(0, 255, 0);
     stroke(0);
-    ellipse(355-250,330,20,20);
+    ellipse(355 - 250, 330, 20, 20);
     pop();
-  } else{
+  } else {
     push();
     fill(150);
     stroke(0);
-    ellipse(355-250,330,20,20);
+    ellipse(355 - 250, 330, 20, 20);
     pop();
   }
 
-  if(buttonGstate==true){
+  if (buttonGstate == true) {
     push();
-    fill(0,255,0);
+    fill(0, 255, 0);
     stroke(0);
-    ellipse(355-205,330,20,20);
+    ellipse(355 - 205, 330, 20, 20);
     pop();
-  } else{
+  } else {
     push();
     fill(150);
     stroke(0);
-    ellipse(355-205,330,20,20);
+    ellipse(355 - 205, 330, 20, 20);
     pop();
   }
 
-  if(buttonAstate==true){
+  if (buttonAstate == true) {
     push();
-    fill(0,255,0);
+    fill(0, 255, 0);
     stroke(0);
-    ellipse(355-155,330,20,20);
+    ellipse(355 - 155, 330, 20, 20);
     pop();
-  } else{
+  } else {
     push();
     fill(150);
     stroke(0);
-    ellipse(355-155,330,20,20);
+    ellipse(355 - 155, 330, 20, 20);
     pop();
   }
 
-  if(buttonCCstate==true){
+  if (buttonCCstate == true) {
     push();
-    fill(0,255,0);
+    fill(0, 255, 0);
     stroke(0);
-    ellipse(355-100,330,20,20);
+    ellipse(355 - 100, 330, 20, 20);
     pop();
-  } else{
+  } else {
     push();
     fill(150);
     stroke(0);
-    ellipse(355-100,330,20,20);
+    ellipse(355 - 100, 330, 20, 20);
     pop();
   }
 
-  if(buttonDDstate==true){
+  if (buttonDDstate == true) {
     push();
-    fill(0,255,0);
+    fill(0, 255, 0);
     stroke(0);
-    ellipse(355-50,330,20,20);
+    ellipse(355 - 50, 330, 20, 20);
     pop();
-  } else{
+  } else {
     push();
     fill(150);
     stroke(0);
-    ellipse(355-50,330,20,20);
+    ellipse(355 - 50, 330, 20, 20);
     pop();
   }
 
-  if(buttonFFstate==true){
+  if (buttonFFstate == true) {
     push();
-    fill(0,255,0);
+    fill(0, 255, 0);
     stroke(0);
-    ellipse(355,330,20,20);
+    ellipse(355, 330, 20, 20);
     pop();
-  } else{
+  } else {
     push();
     fill(150);
     stroke(0);
-    ellipse(355,330,20,20);
+    ellipse(355, 330, 20, 20);
     pop();
   }
 
   fill(0);
-  text(note1,120,100-10);
-  text(note2,120,200-10);
-  text(note3,120,300-10);
-  text(note3_5,220,300-10);
+  text(note1, 120, 100 - 10);
+  text(note2, 120, 200 - 10);
+  text(note3, 120, 300 - 10);
+  text(note3_5, 220, 300 - 10);
 }
 
-function togglePlay(){
-	if(Tone.Transport.state == "started"){
-  	Tone.Transport.stop();
+function togglePlay() {
+  if (Tone.Transport.state == "started") {
+    Tone.Transport.stop();
     synth.stop();
     melody.stop();
     bass.stop();
@@ -595,7 +613,7 @@ function togglePlay(){
     state = 0;
     getPitch();
   } else {
-  	Tone.Transport.start();
+    Tone.Transport.start();
     synth.start("2n");
     melody.start("2n");
     bass.start("4n");
@@ -606,9 +624,9 @@ function togglePlay(){
   }
 }
 
-function toggleDrums(){
-	beatOn = !beatOn;
-  if(beatOn){
+function toggleDrums() {
+  beatOn = !beatOn;
+  if (beatOn) {
     drumsButton.html("DrumsOn");
   } else {
     drumsButton.html("DrumsOff");
@@ -616,116 +634,120 @@ function toggleDrums(){
 }
 
 //to control from DOM buttons
-function addCtoArray(){
-  if(buttonCstate==false){
-    synthScale.push(thescale[0]+"5");
-    melodyScale.push(thescale[0]+"4");
-  	buttonCstate = true;
-  } else if(buttonCstate==true && synthScale.length>=minArrayLength){
-    let i = synthScale.indexOf(thescale[0]+"5");
-    let k = melodyScale.indexOf(thescale[0]+"4");
-    synthScale.splice(i,1);
-    melodyScale.splice(k,1);
+function addCtoArray() {
+  if (buttonCstate == false) {
+    synthScale.push(thescale[0] + "5");
+    melodyScale.push(thescale[0] + "4");
+    buttonCstate = true;
+  } else if (buttonCstate == true && synthScale.length >= minArrayLength) {
+    let i = synthScale.indexOf(thescale[0] + "5");
+    let k = melodyScale.indexOf(thescale[0] + "4");
+    synthScale.splice(i, 1);
+    melodyScale.splice(k, 1);
     buttonCstate = false;
   }
 }
 
-function addDtoArray(){
-	if(buttonDstate==false){
-    synthScale.push(thescale[1]+"5");
-    melodyScale.push(thescale[1]+"4");
+function addDtoArray() {
+  if (buttonDstate == false) {
+    synthScale.push(thescale[1] + "5");
+    melodyScale.push(thescale[1] + "4");
     buttonDstate = true;
-  } else if(buttonDstate==true && synthScale.length>=minArrayLength){
-    let i = synthScale.indexOf(thescale[1]+"5");
-    let k = melodyScale.indexOf(thescale[1]+"4");
-    synthScale.splice(i,1);
-    melodyScale.splice(k,1);
+  } else if (buttonDstate == true && synthScale.length >= minArrayLength) {
+    let i = synthScale.indexOf(thescale[1] + "5");
+    let k = melodyScale.indexOf(thescale[1] + "4");
+    synthScale.splice(i, 1);
+    melodyScale.splice(k, 1);
     buttonDstate = false;
   }
 }
 
-function addFtoArray(){
-	if(buttonFstate==false){
-    synthScale.push(thescale[2]+"5");
-    melodyScale.push(thescale[2]+"4");
+function addFtoArray() {
+  if (buttonFstate == false) {
+    synthScale.push(thescale[2] + "5");
+    melodyScale.push(thescale[2] + "4");
     buttonFstate = true;
-  } else if(buttonFstate==true && synthScale.length>=minArrayLength){
-    let i = synthScale.indexOf(thescale[2]+"5");
-    let k = melodyScale.indexOf(thescale[2]+"4");
-    synthScale.splice(i,1);
-    melodyScale.splice(k,1);
+  } else if (buttonFstate == true && synthScale.length >= minArrayLength) {
+    let i = synthScale.indexOf(thescale[2] + "5");
+    let k = melodyScale.indexOf(thescale[2] + "4");
+    synthScale.splice(i, 1);
+    melodyScale.splice(k, 1);
     buttonFstate = false;
   }
 }
 
-function addGtoArray(){
-	if(buttonGstate==false){
-    synthScale.push(thescale[3]+"5");
-    melodyScale.push(thescale[3]+"4");
+function addGtoArray() {
+  if (buttonGstate == false) {
+    synthScale.push(thescale[3] + "5");
+    melodyScale.push(thescale[3] + "4");
     buttonGstate = true;
-  } else if(buttonGstate==true && synthScale.length>=minArrayLength){
-    let i = synthScale.indexOf(thescale[3]+"5");
-    let k = melodyScale.indexOf(thescale[3]+"4");
-    synthScale.splice(i,1);
-    melodyScale.splice(k,1);
+  } else if (buttonGstate == true && synthScale.length >= minArrayLength) {
+    let i = synthScale.indexOf(thescale[3] + "5");
+    let k = melodyScale.indexOf(thescale[3] + "4");
+    synthScale.splice(i, 1);
+    melodyScale.splice(k, 1);
     buttonGstate = false;
   }
 }
 
-function addAtoArray(){
-	if(buttonAstate==false){
-    synthScale.push(thescale[4]+"5");
-    melodyScale.push(thescale[4]+"4");
+function addAtoArray() {
+  if (buttonAstate == false) {
+    synthScale.push(thescale[4] + "5");
+    melodyScale.push(thescale[4] + "4");
     buttonAstate = true;
-  } else if(buttonAstate==true && synthScale.length>=minArrayLength){
-    let i = synthScale.indexOf(thescale[4]+"5");
-    let k = melodyScale.indexOf(thescale[4]+"4");
-    synthScale.splice(i,1);
-    melodyScale.splice(k,1);
+  } else if (buttonAstate == true && synthScale.length >= minArrayLength) {
+    let i = synthScale.indexOf(thescale[4] + "5");
+    let k = melodyScale.indexOf(thescale[4] + "4");
+    synthScale.splice(i, 1);
+    melodyScale.splice(k, 1);
     buttonAstate = false;
   }
 }
 
-function addCCtoArray(){
-	if(buttonCCstate==false){
-    synthScale.push(thescale[0]+"6");
-    melodyScale.push(thescale[0]+"5");
+function addCCtoArray() {
+  if (buttonCCstate == false) {
+    synthScale.push(thescale[0] + "6");
+    melodyScale.push(thescale[0] + "5");
     buttonCCstate = true;
-  } else if(buttonCCstate==true && synthScale.length>=minArrayLength){
-    let i = synthScale.indexOf(thescale[0]+"6");
-    let k = melodyScale.indexOf(thescale[0]+"5");
-    synthScale.splice(i,1);
-    melodyScale.splice(k,1);
+  } else if (buttonCCstate == true && synthScale.length >= minArrayLength) {
+    let i = synthScale.indexOf(thescale[0] + "6");
+    let k = melodyScale.indexOf(thescale[0] + "5");
+    synthScale.splice(i, 1);
+    melodyScale.splice(k, 1);
     buttonCCstate = false;
   }
 }
 
-function addDDtoArray(){
-	if(buttonDDstate==false){
-    synthScale.push(thescale[1]+"6");
-    melodyScale.push(thescale[1]+"5");
+function addDDtoArray() {
+  if (buttonDDstate == false) {
+    synthScale.push(thescale[1] + "6");
+    melodyScale.push(thescale[1] + "5");
     buttonDDstate = true;
-  } else if(buttonDDstate==true && synthScale.length>=minArrayLength){
-    let i = synthScale.indexOf(thescale[1]+"6");
-    let k = melodyScale.indexOf(thescale[1]+"5");
-    synthScale.splice(i,1);
-    melodyScale.splice(k,1);
+  } else if (buttonDDstate == true && synthScale.length >= minArrayLength) {
+    let i = synthScale.indexOf(thescale[1] + "6");
+    let k = melodyScale.indexOf(thescale[1] + "5");
+    synthScale.splice(i, 1);
+    melodyScale.splice(k, 1);
     buttonDDstate = false;
   }
 }
 
-function addFFtoArray(){
-	if(buttonFFstate==false){
-    synthScale.push(thescale[2]+"6");
-    melodyScale.push(thescale[2]+"5");
+function addFFtoArray() {
+  if (buttonFFstate == false) {
+    synthScale.push(thescale[2] + "6");
+    melodyScale.push(thescale[2] + "5");
     buttonFFstate = true;
-  } else if(buttonFFstate==true && synthScale.length>=minArrayLength){
-    let i = synthScale.indexOf(thescale[2]+"6");
-    let k = melodyScale.indexOf(thescale[2]+"5");
-    synthScale.splice(i,1);
-    melodyScale.splice(k,1);
+  } else if (buttonFFstate == true && synthScale.length >= minArrayLength) {
+    let i = synthScale.indexOf(thescale[2] + "6");
+    let k = melodyScale.indexOf(thescale[2] + "5");
+    synthScale.splice(i, 1);
+    melodyScale.splice(k, 1);
     buttonFFstate = false;
   }
+}
+
+function keyPressed() {
+  getAudioContext().resume();
 }
 
 // function togglesynth(){
