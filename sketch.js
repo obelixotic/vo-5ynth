@@ -180,75 +180,91 @@ function setup() {
   recordButton = createButton('Record');
   recordButton.position(330 - 80, 80 + 120);
   recordButton.mousePressed(recordVoice);
+  recordButton.hide();
 
   modeButton = createButton('Mode1');
   modeButton.position(330 - 80, 80 + 250);
   modeButton.mousePressed(synthMode);
+  modeButton.hide();
 
   playButton = createButton('Play');
   playButton.position(330, 80 + 120);
   playButton.mousePressed(togglePlay);
+  playButton.hide();
 
   synthButton = createButton("synthOff");
   synthButton.position(40, 80 + 120);
   // synthButton.mousePressed(togglesynth);
+  synthButton.hide();
 
   drumsButton = createButton("DrumsOff");
   drumsButton.position(330, 80 + 250);
   drumsButton.mousePressed(toggleDrums);
+  drumsButton.hide();
 
   melodyButton = createButton("melodyOff");
   melodyButton.position(40, 180 + 120);
   // melodyButton.mousePressed(togglemelody);
+  melodyButton.hide();
 
   bassButton = createButton("BassOff");
   bassButton.position(40, 280 + 120);
   // bassButton.mousePressed(togglebass);
+  bassButton.hide();
+  
   var s = 0;
   buttonC = createButton(thescale[s]);
   buttonC.position(40 - 40, 500);
   buttonC.mousePressed(addCtoArray);
+  buttonC.hide();
 
   s++;
   buttonD = createButton(thescale[s]);
   buttonD.position(90 - 50, 500);
   buttonD.mousePressed(addDtoArray);
+  buttonD.hide();
 
   s++;
   buttonF = createButton(thescale[s]);
   buttonF.position(190 - 100, 500);
   buttonF.mousePressed(addFtoArray);
+  buttonF.hide();
 
   s++;
   buttonG = createButton(thescale[s]);
   buttonG.position(240 - 100, 500);
   buttonG.mousePressed(addGtoArray);
+  buttonG.hide();
 
   s++;
   buttonA = createButton(thescale[s]);
   buttonA.position(290 - 100, 500);
   buttonA.mousePressed(addAtoArray);
+  buttonA.hide();
 
   s = 0;
   buttonCC = createButton(thescale[s]);
   buttonCC.position(340 - 100, 500);
   buttonCC.mousePressed(addCCtoArray);
+  buttonCC.hide();
 
   s++;
   buttonDD = createButton(thescale[s]);
   buttonDD.position(340 - 50, 500);
   buttonDD.mousePressed(addDDtoArray);
+  buttonDD.hide();
 
   s++;
   buttonFF = createButton(thescale[s]);
   buttonFF.position(340, 500);
   buttonFF.mousePressed(addFFtoArray);
+  buttonFF.hide();
 
   // bpmSlider = createSlider(50, 82, 66, 4);
-  complexitySlider = createSlider(1, 6, 2, 1);
-  bassSlider = createSlider(-24, 4, -2, 1);
-  melodySlider = createSlider(-24, 6, -12, 1);
-  synthSlider = createSlider(-24, 0, -20, 1);
+  complexitySlider = createSlider(1, 6, 2, 1).hide();
+  bassSlider = createSlider(-24, 4, -2, 1).hide();
+  melodySlider = createSlider(-24, 6, -12, 1).hide();
+  synthSlider = createSlider(-24, 0, -20, 1).hide();
 }
 
 function playBeat(time, drumsample) {
@@ -428,24 +444,26 @@ function feedNote() {
   }
 }
 
+
 function draw() {
   background(150);
   // Tone.Transport.bpm.value = bpmSlider.value();
-
   if (Tone.Transport.state == "started") {
-    sampler.volume.value = synthSlider.value();
-    synth1.volume.value = map(synthSlider.value(), -24, 0, -48, 0);
+	
+    sampler.volume.value = synthvalue;
+    synth1.volume.value = map(synthvalue, -24, 0, -48, 0);
 
-    sampler2.volume.value = map(synthSlider.value(), -24, 0, -36, 0);
-    synth2.volume.value = map(synthSlider.value(), -24, 0, -30, 0);
+    sampler2.volume.value = map(synthvalue, -24, 0, -36, 0);
+    synth2.volume.value = map(synthvalue, -24, 0, -30, 0);
 
-    sampler3.volume.value = melodySlider.value();
-    synth3.volume.value = map(melodySlider.value(), -24, 6, -24, 2);
+    sampler3.volume.value = melodyvalue;
+    synth3.volume.value = map(melodyvalue, -24, 6, -24, 2);
 
-    sampler4.volume.value = bassSlider.value();
-    synth4.volume.value = map(bassSlider.value(), -24, 4, -48, 1);
+    sampler4.volume.value = bassvalue;
+	
+    synth4.volume.value = map(bassvalue, -24, 4, -48, 1);
 
-    complexityValue = complexitySlider.value();
+    complexityValue = complexityvalue;
   }
 
   //stopping layer if volume == min
@@ -483,12 +501,14 @@ function draw() {
   // use if(buttonCstate==true && note1=="C5"){ } for having the green circles move as notes are played
   if (buttonCstate == true) {
     push();
+	// alert ("hello");
     fill(0, 255, 0);
     stroke(0);
     ellipse(355 - 350, 330, 20, 20);
     pop();
   } else {
     push();
+  // alert ("hi");
     fill(150);
     stroke(0);
     ellipse(355 - 350, 330, 20, 20);
