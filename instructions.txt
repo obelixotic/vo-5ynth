@@ -1,0 +1,6 @@
+connect the synth using USB
+start p5.serialcontrol
+select port and 'open'
+node server.js (make sure the serial interface in sketch is same eg.14101)
+go to local:8080
+should be working fine

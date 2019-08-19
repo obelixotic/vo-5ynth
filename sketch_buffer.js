@@ -483,10 +483,10 @@ function findNote() {
     if (b9 == 1) {
       soundFile.play();
     }
-    filename = Date.now() + '.wav';
-    filenames.push(filename);
-    save(soundFile, filename);
-    console.log("RECORDING SAVED");
+    // filename = Date.now() + '.wav';
+    // filenames.push(filename);
+    // save(soundFile, filename);
+    // console.log("RECORDING SAVED");
     state++;
   }
   setTimeout(feedNote, 1000);
@@ -565,25 +565,25 @@ function feedNote() {
       });
 
       sampler = new Tone.Sampler({
-        [theNote]: "./" + filenames[filenames.length - 1]
+        [theNote]: soundFile.buffer
       });
       sampler.attack = 0.5;
       sampler.release = 0.01;
 
       sampler2 = new Tone.Sampler({
-        [theNote]: "./" + filenames[filenames.length - 1]
+        [theNote]: soundFile.buffer
       });
       sampler2.attack = 0.5;
       sampler2.release = 0.01;
 
       sampler3 = new Tone.Sampler({
-        [theNote]: "./" + filenames[filenames.length - 1]
+        [theNote]: soundFile.buffer
       });
       sampler3.attack = 0.2;
       sampler3.release = 0.01;
 
       sampler4 = new Tone.Sampler({
-        [theNote]: "./" + filenames[filenames.length - 1]
+        [theNote]: soundFile.buffer
       });
       sampler4.attack = 0.5;
       sampler4.release = 0.01;
@@ -654,25 +654,25 @@ function feedNote() {
         }
       });
       sampler = new Tone.Sampler({
-        [theNote]: "./" + filenames[filenames.length - 1]
+        [theNote]: soundFile.buffer
       });
       sampler.attack = 0.5;
       sampler.release = 0.01;
 
       sampler2 = new Tone.Sampler({
-        [theNote]: "./" + filenames[filenames.length - 1]
+        [theNote]: soundFile.buffer
       });
       sampler2.attack = 0.5;
       sampler2.release = 0.01;
 
       sampler3 = new Tone.Sampler({
-        [theNote]: "./" + filenames[filenames.length - 1]
+        [theNote]: soundFile.buffer
       });
       sampler3.attack = 0.2;
       sampler3.release = 0.01;
 
       sampler4 = new Tone.Sampler({
-        [theNote]: "./" + filenames[filenames.length - 1]
+        [theNote]: soundFile.buffer
       });
       sampler4.attack = 0.5;
       sampler4.release = 0.01;
