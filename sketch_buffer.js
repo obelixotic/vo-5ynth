@@ -488,6 +488,7 @@ function findNote() {
     // save(soundFile, filename);
     // console.log("RECORDING SAVED");
     state++;
+    console.log('played note');
   }
   setTimeout(feedNote, 1000);
 }
