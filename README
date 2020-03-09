@@ -1,0 +1,4 @@
+Vo-5ynth, pronounced "vo – synth" (short for "voice-synthesizer in p5") is a music instrument, but it's not an ordinary one. First it doesn't have a sound of its own. Instead, it uses the users voice to make music. Second, it's a generative music instrument so it doesn't give the user complete control over the music making process, instead, it encourages the user to (in a way) collaborate with the instrument ("the machine") to make music. The user can define the pool of notes from which music can be generated but the actual output (notes for the bass, melody, harmony) is generated algorithmically by the instrument itself. The user can change the selected notes in real time to change the music and can thus, play this as an instrument that can be performed live or be used as an ideation tool, or just for fun really!
+
+
+You can find the project documentation here https://www.tushargoyal.xyz/vo-5ynth.html
