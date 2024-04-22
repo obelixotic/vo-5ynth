@@ -168,15 +168,15 @@ function preload() {
 function setup() {
   createCanvas(400, 400);
   audioContext = getAudioContext();
-  mic = new p5.AudioIn();
+  // mic = new p5.AudioIn();
 
   serial = new p5.SerialPort();
   serial.on('data', gotData);
   serial.open("/dev/cu.usbmodem14101");
 
-  mic.start(startPitch);
-  recorder = new p5.SoundRecorder();
-  recorder.setInput(mic);
+  // mic.start(startPitch);
+  // recorder = new p5.SoundRecorder();
+  // recorder.setInput(mic);
   soundFile = new p5.SoundFile();
   createP('keyPress to record', 20, 20);
 
@@ -372,11 +372,11 @@ function gotData() {
 
   //recording
   if (b10 == 0) {
-    if (state % 4 == 0 && mic.enabled) {
+    if (state % 4 == 0) {
       if (Tone.Transport.state == "started") {
         togglePlay();
       }
-      recorder.record(soundFile);
+      // recorder.record(soundFile);
       logValues(f);
       console.log("RECORDING AND LISTENING");
       state = 1;
@@ -449,11 +449,11 @@ function logValues(f) {
 }
 
 function keyPressed() {
-  if (state % 4 == 0 && mic.enabled) {
+  if (state % 4 == 0) {
     if (Tone.Transport.state == "started") {
       togglePlay();
     }
-    recorder.record(soundFile);
+    // recorder.record(soundFile);
     logValues(f);
     console.log("RECORDING AND LISTENING");
     state = 1;
@@ -466,8 +466,9 @@ function stateManager() {
 }
 
 function stopRecording() {
+  console.info('__TUSHAR calling stop recording');
   if (state === 1) {
-    recorder.stop();
+    // recorder.stop();
     console.log("STOPPED RECORDING AND LISTENING")
     state++;
   }
@@ -475,7 +476,8 @@ function stopRecording() {
 }
 
 function findNote() {
-  if (state === 2) {
+  console.info('__TUSHAR calling find note', state);
+  if (state === 2 && false) {
     var temp = Tone.Frequency.ftom(values[values.length - 1]);
     // console.log(JSON.stringify(temp,null,null));
     theNote = Tone.Frequency(temp, "midi").toNote();
@@ -490,14 +492,17 @@ function findNote() {
     state++;
     console.log('played note');
   }
+  state++;
   setTimeout(feedNote, 1000);
 }
 
 function feedNote() {
+  console.info('__TUSHAR calling feed note', state);
+  const flag = false;
   if (state === 3) {
     console.log(`the note is ${theNote}`);
     console.log("SAMPLER INITIALISED");
-    if (b9 == 0 && b4 == 1) {
+    if (b9 == 0 && b4 == 1 && flag === true) {
       console.log("angel mode on");
       synth1.set({
         "oscillator": {
@@ -542,7 +547,7 @@ function feedNote() {
       });
       sampler4.attack = 0.5;
       sampler4.release = 0.01;
-    } else if (b9 == 1 && b4 == 0) {
+    } else if (b9 == 1 && b4 == 0 && flag === true) {
       console.log("stranger things mode on");
       synth1.set({
         "oscillator": {
@@ -588,7 +593,7 @@ function feedNote() {
       });
       sampler4.attack = 0.5;
       sampler4.release = 0.01;
-    } else if (b9 == 0 && b4 == 0) {
+    } else if (flag === false) { // b4 = G b9 = drums
       console.log("god mode on");
       sampler = new Tone.Sampler({
         "D3": "./tusharD3.mp3"
@@ -633,50 +638,50 @@ function feedNote() {
           "type": "square"
         }
       });
-    } else if (b9 == 1 && b4 == 1) {
-      synth1.set({
-        "oscillator": {
-          "type": "sine"
-        }
-      });
-      synth2.set({
-        "oscillator": {
-          "type": "sine"
-        }
-      });
-      synth3.set({
-        "oscillator": {
-          "type": "sine"
-        }
-      });
-      synth4.set({
-        "oscillator": {
-          "type": "sine"
-        }
-      });
-      sampler = new Tone.Sampler({
-        [theNote]: soundFile.buffer
-      });
-      sampler.attack = 0.5;
-      sampler.release = 0.01;
+    // } else if (b9 == 1 && b4 == 1) {
+    //   synth1.set({
+    //     "oscillator": {
+    //       "type": "sine"
+    //     }
+    //   });
+    //   synth2.set({
+    //     "oscillator": {
+    //       "type": "sine"
+    //     }
+    //   });
+    //   synth3.set({
+    //     "oscillator": {
+    //       "type": "sine"
+    //     }
+    //   });
+    //   synth4.set({
+    //     "oscillator": {
+    //       "type": "sine"
+    //     }
+    //   });
+    //   sampler = new Tone.Sampler({
+    //     [theNote]: soundFile.buffer
+    //   });
+    //   sampler.attack = 0.5;
+    //   sampler.release = 0.01;
 
-      sampler2 = new Tone.Sampler({
-        [theNote]: soundFile.buffer
-      });
-      sampler2.attack = 0.5;
-      sampler2.release = 0.01;
+    //   sampler2 = new Tone.Sampler({
+    //     [theNote]: soundFile.buffer
+    //   });
+    //   sampler2.attack = 0.5;
+    //   sampler2.release = 0.01;
 
-      sampler3 = new Tone.Sampler({
-        [theNote]: soundFile.buffer
-      });
-      sampler3.attack = 0.2;
-      sampler3.release = 0.01;
+    //   sampler3 = new Tone.Sampler({
+    //     [theNote]: soundFile.buffer
+    //   });
+    //   sampler3.attack = 0.2;
+    //   sampler3.release = 0.01;
 
-      sampler4 = new Tone.Sampler({
-        [theNote]: soundFile.buffer
-      });
-      sampler4.attack = 0.5;
-      sampler4.release = 0.01;
+    //   sampler4 = new Tone.Sampler({
+    //     [theNote]: soundFile.buffer
+    //   });
+    //   sampler4.attack = 0.5;
+    //   sampler4.release = 0.01;
     }
 
     var chorus = new Tone.Chorus(4, 2.5, 0.1).toMaster();
@@ -690,7 +695,7 @@ function feedNote() {
 
     console.log("READY TO PLAY");
     state++;
-    getPitch();
+    // getPitch();
     console.log(notes);
 
   }
@@ -699,27 +704,27 @@ function feedNote() {
 function draw() {
   background(150);
   if (state > 3) {
-    sampler.volume.value = p1;
-    // sampler.volume.value = synthSlider.value();
+    // sampler.volume.value = -12;
+    sampler.volume.value = synthSlider.value();
     synth1.volume.value = map(sampler.volume.value, -24, 0, -54, -12);
 
     sampler2.volume.value = map(synth1.volume.value, -48, 0, -36, 0);
     synth2.volume.value = map(synth1.volume.value, -54, -12, -48, -8);
 
-    sampler3.volume.value = p2;
-    // sampler3.volume.value = melodySlider.value();
+    // sampler3.volume.value = -12;
+    sampler3.volume.value = melodySlider.value();
     synth3.volume.value = map(sampler3.volume.value, -24, 6, -48, -8);
 
-    sampler4.volume.value = p3;
-    // sampler4.volume.value = bassSlider.value();
+    // sampler4.volume.value = -12;
+    sampler4.volume.value = bassSlider.value();
     synth4.volume.value = map(sampler4.volume.value, -24, 4, -48, 0);
 
-    complexityValue = p4;
-    // complexityValue = complexitySlider.value();
+    // complexityValue = 3;
+    complexityValue = complexitySlider.value();
   }
 
   //stopping layer if volume == min
-  if (synthScale.length > 0 && Tone.Transport.state == "started" && p1 > -22.5) {
+  if (synthScale.length > 0 && Tone.Transport.state == "started") {
     synth.start("2n");
     synthButton.html("SynthOn");
   } else {
@@ -727,7 +732,7 @@ function draw() {
     synthButton.html("SynthOff");
   }
 
-  if (synthScale.length > 0 && Tone.Transport.state == "started" && p2 > -22.5) {
+  if (synthScale.length > 0 && Tone.Transport.state == "started") {
     melody.start("2n");
     melodyButton.html("MelodyOn");
   } else {
@@ -735,7 +740,7 @@ function draw() {
     melodyButton.html("MelodyOff");
   }
 
-  if (Tone.Transport.state == "started" && p3 > -22.5) {
+  if (Tone.Transport.state == "started") {
     bass.start("4n");
     bassButton.html("BassOn");
   } else {
