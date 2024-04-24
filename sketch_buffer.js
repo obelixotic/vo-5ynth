@@ -8,7 +8,7 @@ var files = [];
 var filename = "";
 var filenames = [];
 var notes = [];
-var serial;
+// var serial;
 let audioContext;
 let mic;
 let pitch;
@@ -165,19 +165,44 @@ function preload() {
   files = loadJSON("/getfiles");
 }
 
+// new web serial library
+const serial = new p5.WebSerial();
+// check to see if serial is available
+if (!navigator.serial) {
+ alert("WebSerial is not supported in this browser. Try Chrome or MS Edge.");
+}
+
 function setup() {
   createCanvas(400, 400);
   audioContext = getAudioContext();
   // mic = new p5.AudioIn();
 
-  serial = new p5.SerialPort();
-  serial.on('data', gotData);
-  serial.open("/dev/cu.usbmodem14101");
+  // old serialport library
+  // serial = new p5.SerialPort();
+  // serial.on('data', gotData);
+  // serial.open("/dev/cu.usbmodem14101"); 
+
+  // let options = { baudrate: 9600}; // change the data rate to whatever you wish
+  // serial.open(portName, options);
+
+  navigator.serial.addEventListener("connect", portConnect);
+  navigator.serial.addEventListener("disconnect", portDisconnect);
+  // check for any ports that are available:
+  serial.getPorts();
+  // if there's no port chosen, choose one:
+  serial.on("noport", makePortButton);
+  // open whatever port is available:
+  serial.on("portavailable", openPort);
+  // handle serial errors:
+  serial.on("requesterror", portError);
+  // handle any incoming serial data:
+  serial.on("data", gotData); // change to gotData ?
+  serial.on("close", makePortButton);
 
   // mic.start(startPitch);
   // recorder = new p5.SoundRecorder();
   // recorder.setInput(mic);
-  soundFile = new p5.SoundFile();
+  // soundFile = new p5.SoundFile();
   createP('');
   // createP('keyPress to record', 20, 20);
 
@@ -237,16 +262,80 @@ function setup() {
 
   // synthSlider = createSlider(-48, -24, -40, 1);
   synthSlider = createSlider(-24, 2, -12, 1);
-  melodySlider = createSlider(-24, 2, -12, 1);
-  bassSlider = createSlider(-24, 2, -4, 1);
-  complexitySlider = createSlider(1, 6, 4, 1);
+  melodySlider = createSlider(-24, 2, -6, 1);
+  bassSlider = createSlider(-24, 2, -6, 1);
+  complexitySlider = createSlider(1, 6, 2, 1);
 }
 
+// if there's no port selected, 
+// make a port select button appear:
+function makePortButton() {
+  // create and position a port chooser button:
+  portButton = createButton("choose port");
+  portButton.position(10, 10);
+  // give the port button a mousepressed handler:
+  portButton.mousePressed(choosePort);
+}
+ 
+// make the port selector window appear:
+function choosePort() {
+  if (portButton) portButton.show();
+  serial.requestPort();
+}
+ 
+// open the selected port, and make the port 
+// button invisible:
+function openPort() {
+  // wait for the serial.open promise to return,
+  // then call the initiateSerial function
+  serial.open().then(initiateSerial);
+ 
+  // once the port opens, let the user know:
+  function initiateSerial() {
+    console.log("port open", serial);
+  }
+  // hide the port button once a port is chosen:
+  if (portButton) portButton.hide();
+}
+ 
+// pop up an alert if there's a port error:
+function portError(err) {
+  alert("Serial port error: " + err);
+}
+ 
+// try to connect if a new serial port 
+// gets added (i.e. plugged in via USB):
+function portConnect() {
+  console.log("port connected", serial);
+  serial.getPorts();
+}
+ 
+// if a port is disconnected:
+function portDisconnect() {
+  serial.close();
+  console.log("port disconnected");
+}
+ 
+function closePort() {
+  serial.close();
+}
+
+// read any incoming data as a string
+// (assumes a newline at the end of it):
+function serialEvent() {
+  inData = serial.readLine();
+  console.log('__data:' , inData);
+}
+
+// let sensors = [];
 function gotData() {
   var currentString = serial.readLine(); // read the incoming string
-  trim(currentString); // remove any trailing whitespace
+  // console.info('__gotData: ', currentString);
+  // trim(currentString); // remove any trailing whitespace
   if (!currentString) return; // if the string is empty, do no more
+  // sensors.push(currentString);)
   var sensors = split(currentString, ','); // split the string on the commas
+  // var sensors = currentString.split(',');
   if (sensors.length > 14) { // if there are more than one elements
     b1 = sensors[0]; //C
     b2 = sensors[1]; //D
@@ -263,6 +352,7 @@ function gotData() {
     p2 = map(sensors[13], 0, 1023, 6, -24); //melody
     p3 = map(sensors[12], 0, 1023, 4, -24); //bass
     p4 = map(sensors[11], 0, 1023, 6, 1); //complexity
+    // sensors = [];
   }
   // console.log(b9, b11);
   // console.log(b4, b9);
@@ -380,7 +470,7 @@ function gotData() {
       }
       // recorder.record(soundFile);
       logValues(f);
-      console.log("RECORDING AND LISTENING");
+      // console.log("RECORDING AND LISTENING");
       state = 1;
       stateManager();
     }
@@ -451,7 +541,6 @@ function logValues(f) {
 }
 
 function keyPressed() {
-  console.log(keyCode);
   if (keyCode === 82) { // key r
     addAtoArray();
     addCtoArray();
@@ -459,16 +548,18 @@ function keyPressed() {
     addFtoArray();
     addGtoArray();
   }
-  if (keyCode === 32) { // key spacebar
-    // if (Tone.Transport.state == "started") {
+  // if (keyCode === 32) { // key spacebar
+  //   togglePlay();
+  // }
+  if (keyCode === 32 || Tone.Transport.state == "started") {
     togglePlay();
-    // }
-    // recorder.record(soundFile);
-    logValues(f);
-    console.log("RECORDING AND LISTENING");
-    state = 1;
-    stateManager();
   }
+    // recorder.record(soundFile);
+  logValues(f);
+    // console.log("RECORDING AND LISTENING");
+  state = 1;
+  stateManager();
+  // }
 }
 
 function stateManager() {
@@ -477,10 +568,10 @@ function stateManager() {
 }
 
 function stopRecording() {
-  console.info('__TUSHAR calling stop recording');
+  // console.info('__TUSHAR calling stop recording');
   if (state === 1) {
     // recorder.stop();
-    console.log("STOPPED RECORDING AND LISTENING")
+    // console.log("STOPPED RECORDING AND LISTENING");
     state++;
   }
   // setTimeout(findNote, 1000);
@@ -488,7 +579,7 @@ function stopRecording() {
 }
 
 function findNote() {
-  console.info('__TUSHAR calling find note', state);
+  // console.info('__TUSHAR calling find note', state);
   if (state === 2 && false) {
     var temp = Tone.Frequency.ftom(values[values.length - 1]);
     // console.log(JSON.stringify(temp,null,null));
@@ -510,10 +601,10 @@ function findNote() {
 }
 
 function feedNote() {
-  console.info('__TUSHAR calling feed note', state);
+  // console.info('__TUSHAR calling feed note', state);
   const flag = false;
   if (state === 3) {
-    console.log(`the note is ${theNote}`);
+    // console.log(`the note is ${theNote}`);
     console.log("SAMPLER INITIALISED");
     if (b9 == 0 && b4 == 1 && flag === true) {
       console.log("angel mode on");
@@ -714,7 +805,7 @@ function feedNote() {
     console.log("READY TO PLAY");
     state++;
     // getPitch();
-    console.log(notes);
+    // console.log(notes);
 
   }
 }
