@@ -24,7 +24,7 @@ var synth1;
 var synth2;
 var synth3;
 var synth4;
-var sampler;
+var sampler1;
 var sampler2;
 var sampler3;
 var sampler4;
@@ -112,7 +112,7 @@ synth4.set({
   }
 });
 
-Tone.Transport.bpm.value = 65;
+Tone.Transport.bpm.value = 70;
 
 var synth = new Tone.Pattern(function(time, note) {
   note1 = note;
@@ -120,10 +120,10 @@ var synth = new Tone.Pattern(function(time, note) {
   var timey1 = ["4t", "8t", "8t", "16t", "16t", "32t"][floor(random(complexityValue))];
   synth.interval = timey1;
   var fifth = Tone.Frequency(note).transpose(-5);
-  // sampler.triggerAttackRelease(note, "8t", time, 1);
+  sampler1.triggerAttackRelease(note, "8t", time, 1);
   synth1.triggerAttackRelease(note, "4t", time, 0.5);
-  // sampler2.triggerAttackRelease(fifth, "8t", time, 1);
-  synth2.triggerAttackRelease(fifth, "4t", time, 0.5);
+  // sampler2.triggerAttackRelease(fifth, "18t", time, 1);
+  // synth2.triggerAttackRelease(fifth, "4t", time, 0.5);
 }, synthScale, "randomOnce");
 synth.loop = true;
 
@@ -141,8 +141,8 @@ var bass = new Tone.Pattern(function(time, note) {
   var bass = Tone.Frequency(note).transpose(-12);
   var fifth = Tone.Frequency(note).transpose(-5);
   note3_5 = fifth.toNote();
-  sampler4.triggerAttackRelease(bass, "2m", time, 1);
-  sampler4.triggerAttackRelease(fifth, "2m", time, 0.5);
+  // sampler4.triggerAttackRelease(bass, "2m", time, 1);
+  // sampler4.triggerAttackRelease(fifth, "2m", time, 0.5);
   synth4.triggerAttackRelease(bass, "4n", time, 1);
   synth4.triggerAttackRelease(fifth, "4n", time, 0.5);
 }, bassScale, "randomOnce");
@@ -178,7 +178,8 @@ function setup() {
   // recorder = new p5.SoundRecorder();
   // recorder.setInput(mic);
   soundFile = new p5.SoundFile();
-  createP('keyPress to record', 20, 20);
+  createP('');
+  // createP('keyPress to record', 20, 20);
 
   textSize(30);
 
@@ -188,7 +189,7 @@ function setup() {
 
   synthButton = createButton("synthOff");
   synthButton.position(40, 80 + 120);
-  // synthButton.mousePressed(togglesynth);
+  synthButton.mousePressed(togglesynth);
 
   drumsButton = createButton("DrumsOff");
   drumsButton.position(330, 80 + 250);
@@ -196,48 +197,49 @@ function setup() {
 
   melodyButton = createButton("melodyOff");
   melodyButton.position(40, 180 + 120);
-  // melodyButton.mousePressed(togglemelody);
+  melodyButton.mousePressed(togglemelody);
 
   bassButton = createButton("BassOff");
   bassButton.position(40, 280 + 120);
-  // bassButton.mousePressed(togglebass);
+  bassButton.mousePressed(togglebass);
 
   buttonC = createButton("C");
-  buttonC.position(40 - 40, 500);
+  buttonC.position(22, 500);
   buttonC.mousePressed(addCtoArray);
 
   buttonD = createButton("D");
-  buttonD.position(90 - 50, 500);
+  buttonD.position(72, 500);
   buttonD.mousePressed(addDtoArray);
 
   buttonF = createButton("F");
-  buttonF.position(190 - 100, 500);
+  buttonF.position(122, 500);
   buttonF.mousePressed(addFtoArray);
 
   buttonG = createButton("G");
-  buttonG.position(240 - 100, 500);
+  buttonG.position(172 - 4, 500);
   buttonG.mousePressed(addGtoArray);
 
   buttonA = createButton("A");
-  buttonA.position(290 - 100, 500);
+  buttonA.position(222 - 4, 500);
   buttonA.mousePressed(addAtoArray);
 
   buttonCC = createButton("C");
-  buttonCC.position(340 - 100, 500);
+  buttonCC.position(272, 500);
   buttonCC.mousePressed(addCCtoArray);
 
   buttonDD = createButton("D");
-  buttonDD.position(340 - 50, 500);
+  buttonDD.position(322, 500);
   buttonDD.mousePressed(addDDtoArray);
 
   buttonFF = createButton("F");
-  buttonFF.position(340, 500);
+  buttonFF.position(372, 500);
   buttonFF.mousePressed(addFFtoArray);
 
-  synthSlider = createSlider(-48, -24, -40, 1);
+  // synthSlider = createSlider(-48, -24, -40, 1);
+  synthSlider = createSlider(-24, 2, -12, 1);
   melodySlider = createSlider(-24, 2, -12, 1);
-  bassSlider = createSlider(-24, 2, -2, 1);
-  complexitySlider = createSlider(1, 6, 2, 1);
+  bassSlider = createSlider(-24, 2, -4, 1);
+  complexitySlider = createSlider(1, 6, 4, 1);
 }
 
 function gotData() {
@@ -449,10 +451,18 @@ function logValues(f) {
 }
 
 function keyPressed() {
-  if (state % 4 == 0) {
-    if (Tone.Transport.state == "started") {
-      togglePlay();
-    }
+  console.log(keyCode);
+  if (keyCode === 82) { // key r
+    addAtoArray();
+    addCtoArray();
+    addDtoArray();
+    addFtoArray();
+    addGtoArray();
+  }
+  if (keyCode === 32) { // key spacebar
+    // if (Tone.Transport.state == "started") {
+    togglePlay();
+    // }
     // recorder.record(soundFile);
     logValues(f);
     console.log("RECORDING AND LISTENING");
@@ -462,7 +472,8 @@ function keyPressed() {
 }
 
 function stateManager() {
-  setTimeout(stopRecording, 1000);
+  // setTimeout(stopRecording, 1000);
+  stopRecording();
 }
 
 function stopRecording() {
@@ -472,7 +483,8 @@ function stopRecording() {
     console.log("STOPPED RECORDING AND LISTENING")
     state++;
   }
-  setTimeout(findNote, 1000);
+  // setTimeout(findNote, 1000);
+  findNote();
 }
 
 function findNote() {
@@ -493,7 +505,8 @@ function findNote() {
     console.log('played note');
   }
   state++;
-  setTimeout(feedNote, 1000);
+  // setTimeout(feedNote, 1000);
+  feedNote();
 }
 
 function feedNote() {
@@ -524,11 +537,11 @@ function feedNote() {
           "type": "sine"
         }
       });
-      sampler = new Tone.Sampler({
+      sampler1 = new Tone.Sampler({
         "D3": "./tusharD3.mp3"
       });
-      sampler.attack = 0.5;
-      sampler.release = 0.01;
+      sampler1.attack = 0.5;
+      sampler1.release = 0.01;
 
       sampler2 = new Tone.Sampler({
         "D3": "./tusharD3.mp3"
@@ -570,11 +583,11 @@ function feedNote() {
         }
       });
 
-      sampler = new Tone.Sampler({
+      sampler1 = new Tone.Sampler({
         [theNote]: soundFile.buffer
       });
-      sampler.attack = 0.5;
-      sampler.release = 0.01;
+      sampler1.attack = 0.5;
+      sampler1.release = 0.01;
 
       sampler2 = new Tone.Sampler({
         [theNote]: soundFile.buffer
@@ -595,26 +608,31 @@ function feedNote() {
       sampler4.release = 0.01;
     } else if (flag === false) { // b4 = G b9 = drums
       console.log("god mode on");
-      sampler = new Tone.Sampler({
-        "D3": "./tusharD3.mp3"
+      sampler1 = new Tone.Sampler({
+        // "D3": "./tusharD3.mp3"
+        "G5": "./ukeleleG.wav"
       });
-      sampler.attack = 0.5;
-      sampler.release = 0.01;
+      sampler1.attack = 0.5;
+      sampler1.release = 0.01;
 
       sampler2 = new Tone.Sampler({
         "D3": "./tusharD3.mp3"
+        // "C4": "./sitarC7.wav"
       });
       sampler2.attack = 0.5;
       sampler2.release = 0.01;
 
       sampler3 = new Tone.Sampler({
         "D3": "./tusharD3.mp3"
+        // "C5": "./sitarC7.wav"
+        // "G5": "./ukeleleG.wav"
       });
       sampler3.attack = 0.2;
       sampler3.release = 0.01;
 
       sampler4 = new Tone.Sampler({
-        "D3": "./tusharD3.mp3"
+        // "D3": "./tusharD3.mp3"
+        "C3": "./sitarC7.wav"
       });
       sampler4.attack = 0.5;
       sampler4.release = 0.01;
@@ -625,7 +643,7 @@ function feedNote() {
       });
       synth2.set({
         "oscillator": {
-          "type": "sawtooth"
+          "type": "sine"
         }
       });
       synth3.set({
@@ -688,7 +706,7 @@ function feedNote() {
     var freeverb = new Tone.Freeverb();
     freeverb.dampening.value = 1000;
     var pingPong = new Tone.PingPongDelay("2n", 0.2);
-    sampler.connect(pingPong).connect(freeverb).connect(chorus);
+    sampler1.connect(pingPong).connect(freeverb).connect(chorus);
     sampler2.connect(pingPong).connect(freeverb).connect(chorus);
     sampler3.connect(pingPong).connect(freeverb).connect(chorus);
     sampler4.connect(pingPong).connect(freeverb).connect(chorus);
@@ -704,22 +722,19 @@ function feedNote() {
 function draw() {
   background(150);
   if (state > 3) {
-    // sampler.volume.value = -12;
-    sampler.volume.value = synthSlider.value();
-    synth1.volume.value = map(sampler.volume.value, -24, 0, -54, -12);
+    sampler1.volume.value = synthSlider.value();
+    synth1.volume.value = map(sampler1.volume.value, -24, 6, -48, -8);
 
-    sampler2.volume.value = map(synth1.volume.value, -48, 0, -36, 0);
+    // sampler2.volume.value = synthSlider.value();
+    // sampler2.volume.value = map(synth1.volume.value, -48, 0, -36, 0);
     synth2.volume.value = map(synth1.volume.value, -54, -12, -48, -8);
 
-    // sampler3.volume.value = -12;
     sampler3.volume.value = melodySlider.value();
     synth3.volume.value = map(sampler3.volume.value, -24, 6, -48, -8);
 
-    // sampler4.volume.value = -12;
     sampler4.volume.value = bassSlider.value();
     synth4.volume.value = map(sampler4.volume.value, -24, 4, -48, 0);
 
-    // complexityValue = 3;
     complexityValue = complexitySlider.value();
   }
 
@@ -760,13 +775,13 @@ function draw() {
     push();
     fill(0, 255, 0);
     stroke(0);
-    ellipse(355 - 350, 330, 20, 20);
+    ellipse(375 - 350, 330, 20, 20);
     pop();
   } else {
     push();
     fill(150);
     stroke(0);
-    ellipse(355 - 350, 330, 20, 20);
+    ellipse(375 - 350, 330, 20, 20);
     pop();
   }
 
@@ -774,13 +789,13 @@ function draw() {
     push();
     fill(0, 255, 0);
     stroke(0);
-    ellipse(355 - 300, 330, 20, 20);
+    ellipse(375 - 300, 330, 20, 20);
     pop();
   } else {
     push();
     fill(150);
     stroke(0);
-    ellipse(355 - 300, 330, 20, 20);
+    ellipse(375 - 300, 330, 20, 20);
     pop();
   }
 
@@ -788,13 +803,13 @@ function draw() {
     push();
     fill(0, 255, 0);
     stroke(0);
-    ellipse(355 - 250, 330, 20, 20);
+    ellipse(375 - 250, 330, 20, 20);
     pop();
   } else {
     push();
     fill(150);
     stroke(0);
-    ellipse(355 - 250, 330, 20, 20);
+    ellipse(375 - 250, 330, 20, 20);
     pop();
   }
 
@@ -802,13 +817,13 @@ function draw() {
     push();
     fill(0, 255, 0);
     stroke(0);
-    ellipse(355 - 205, 330, 20, 20);
+    ellipse(375 - 205, 330, 20, 20);
     pop();
   } else {
     push();
     fill(150);
     stroke(0);
-    ellipse(355 - 205, 330, 20, 20);
+    ellipse(375 - 205, 330, 20, 20);
     pop();
   }
 
@@ -816,13 +831,13 @@ function draw() {
     push();
     fill(0, 255, 0);
     stroke(0);
-    ellipse(355 - 155, 330, 20, 20);
+    ellipse(375 - 155, 330, 20, 20);
     pop();
   } else {
     push();
     fill(150);
     stroke(0);
-    ellipse(355 - 155, 330, 20, 20);
+    ellipse(375 - 155, 330, 20, 20);
     pop();
   }
 
@@ -830,13 +845,13 @@ function draw() {
     push();
     fill(0, 255, 0);
     stroke(0);
-    ellipse(355 - 100, 330, 20, 20);
+    ellipse(375 - 100, 330, 20, 20);
     pop();
   } else {
     push();
     fill(150);
     stroke(0);
-    ellipse(355 - 100, 330, 20, 20);
+    ellipse(375 - 100, 330, 20, 20);
     pop();
   }
 
@@ -844,13 +859,13 @@ function draw() {
     push();
     fill(0, 255, 0);
     stroke(0);
-    ellipse(355 - 50, 330, 20, 20);
+    ellipse(375 - 50, 330, 20, 20);
     pop();
   } else {
     push();
     fill(150);
     stroke(0);
-    ellipse(355 - 50, 330, 20, 20);
+    ellipse(375 - 50, 330, 20, 20);
     pop();
   }
 
@@ -858,13 +873,13 @@ function draw() {
     push();
     fill(0, 255, 0);
     stroke(0);
-    ellipse(355, 330, 20, 20);
+    ellipse(375, 330, 20, 20);
     pop();
   } else {
     push();
     fill(150);
     stroke(0);
-    ellipse(355, 330, 20, 20);
+    ellipse(375, 330, 20, 20);
     pop();
   }
 
@@ -882,18 +897,18 @@ function togglePlay() {
     melody.stop();
     bass.stop();
     playButton.html('Play');
-    synthButton.html("SynthOff");
-    melodyButton.html("MelodyOff");
-    bassButton.html("BassOff");
+    // synthButton.html("SynthOff");
+    // melodyButton.html("MelodyOff");
+    // bassButton.html("BassOff");
   } else {
     Tone.Transport.start();
     synth.start("2n");
     melody.start("2n");
     bass.start("4n");
     playButton.html('Stop');
-    synthButton.html("SynthOn");
-    melodyButton.html("MelodyOn");
-    bassButton.html("BassOn");
+    // synthButton.html("SynthOn");
+    // melodyButton.html("MelodyOn");
+    // bassButton.html("BassOn");
   }
 }
 
@@ -1019,32 +1034,32 @@ function addFFtoArray() {
   }
 }
 
-// function togglesynth(){
-// 	if(synth.state == "started"){
-//   	synth.stop();
-//     synthButton.html("SynthOff");
-//   } else {
-//   	synth.start("2n");
-//     synthButton.html("SynthOn");
-//   }
-// }
+function togglesynth(){
+	if(synth.state === "started"){
+  	synth.stop();
+    synthButton.html("SynthOff");
+  } else {
+  	synth.start("2n");
+    synthButton.html("SynthOn");
+  }
+}
 
-// function togglemelody(){
-// 	if(melody.state == "started"){
-//   	melody.stop();
-//     melodyButton.html("MelodyOff");
-//   } else {
-//   	melody.start("2n");
-//     melodyButton.html("MelodyOn");
-//   }
-// }
+function togglemelody(){
+	if(melody.state == "started"){
+  	melody.stop();
+    melodyButton.html("MelodyOff");
+  } else {
+  	melody.start("2n");
+    melodyButton.html("MelodyOn");
+  }
+}
 
-// function togglebass(){
-// 	if(bass.state == "started"){
-//   	bass.stop();
-//     bassButton.html("BassOff");
-//   } else {
-//   	bass.start("4n");
-//     bassButton.html("BassOn");
-//   }
-// }
+function togglebass(){
+	if(bass.state == "started"){
+  	bass.stop();
+    bassButton.html("BassOff");
+  } else {
+  	bass.start("4n");
+    bassButton.html("BassOn");
+  }
+}
